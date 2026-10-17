@@ -528,26 +528,23 @@ BYBIT_SL_PCT = 0.0122
 SL_GRACIA_MECHAZO_SEG = 6.0
 
 # ==============================================================================
-# DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.1.1 (EMPEROR'S TIME - PURE ALPHA 11)
+# DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.3.0 (EMPEROR'S TIME - PARALLEL FUTURE)
 # ==============================================================================
-VERSION_SISTEMA = "7.2.0"
-NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_2_IMPERIAL_COMPOUNDING"
+VERSION_SISTEMA = "7.3.0"
+NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_3_PARALLEL_FUTURE"
 
-# Ley V (V7.1.1): 11 Campeones de Alta Reversión (Purga de TIA, ENA, NEAR y ADA < 46% WR)
+# Cartera Depredadora V7.3.0: 7 Campeones con Expectativa Histórica 100% Positiva (+0.7102 USDT)
 NUCLEO_ALFA_V7 = (
-    "WAL/USDT:USDT",
     "ZEREBRO/USDT:USDT",
-    "STRK/USDT:USDT",
+    "WAL/USDT:USDT",
     "INJ/USDT:USDT",
     "XRP/USDT:USDT",
     "AVAX/USDT:USDT",
-    "HYPE/USDT:USDT",
     "TAO/USDT:USDT",
     "ARB/USDT:USDT",
-    "1000PEPE/USDT:USDT",
-    "UNI/USDT:USDT",
 )
 
+# Purga total de activos con asimetría negativa (incluyendo STRK -0.7181 USDT)
 PARES_VETADOS_OOS_V7 = frozenset({
     "PUMPFUN/USDT:USDT",
     "TRUTH/USDT:USDT",
@@ -560,9 +557,12 @@ PARES_VETADOS_OOS_V7 = frozenset({
     "ENA/USDT:USDT",
     "NEAR/USDT:USDT",
     "ADA/USDT:USDT",
+    "STRK/USDT:USDT",
+    "UNI/USDT:USDT",
+    "1000PEPE/USDT:USDT",
+    "HYPE/USDT:USDT",
 })
 
-# En modo test se mantienen libres ADA/ENA/NEAR para las pruebas sintéticas [4/15], [7/15] y [8/15]
 BLACKLIST_PERMANENTE = {
     "PUMPFUN/USDT:USDT",
     "TRUTH/USDT:USDT",
@@ -574,7 +574,7 @@ BLACKLIST_PERMANENTE = {
 }
 PARES_EXCLUIDOS_OOS = set(BLACKLIST_PERMANENTE)
 
-# Invariantes Matemáticos WIN-to-WIN V7.1.1
+# Invariantes Matemáticos Parallel Future V7.3.0
 CAIDA_MIN_FISICA_V7_PCT = -0.0072
 TECHO_EMA900_PCT = 0.0080
 ANCLAJE_CAGINALP_MAX_PCT = 0.0078
@@ -585,22 +585,13 @@ Z_SNIPER_IOC_V7 = -3.60
 CAIDA_SNIPER_IOC_V7_PCT = -0.0115
 OFI_SNIPER_IOC_V7 = 0.75
 SLIPPAGE_MAX_IOC_V7 = 0.0003
-EMPEROR_V7_1_CAIDA_FISICA_MIN_PCT = -0.64
-EMPEROR_V7_1_EMA900_DIST_MIN_PCT = -0.50
-EMPEROR_V7_1_HAWKES_MIN = 0.12
-EMPEROR_V7_1_MAKER_MIN_PROFIT_PCT = 0.0022
-SL_INICIAL_PCT = 0.0185
-SL_BYBIT_PCT = 0.0250
+EMPEROR_V7_3_EMA900_MAX_CRASH_PCT = -2.90   # Bloquea cuchillas estructurales (< -2.90% bajo EMA900)
+EMPEROR_V7_3_EMA900_MIN_DIST_PCT = -0.52    # Exige estiramiento mínimo <= -0.52% bajo EMA900
+EMPEROR_V7_3_HAWKES_MIN = 0.22              # Exige absorción de Hawkes sólida (>= +0.22)
+EMPEROR_V7_3_SHIELD_SEG = 42.0              # Escudo Maker adelantado de 85s a 42s (evita colapso a los 80s)
+SL_INICIAL_PCT = 0.0095                     # -0.95% SL lógico interno en producción
+SL_BYBIT_PCT = 0.0135                       # -1.35% SL catastrófico Bybit (reduce pérdida máx en 46.5%)
 MAKER_UNWIND_TARGET_PCT = 0.0048
-EMPEROR_PASSIVE_SHIELD_SEG = 55.0
+EMPEROR_PASSIVE_SHIELD_SEG = 42.0
 EMPEROR_PASSIVE_SHIELD_PCT = 0.0010
 EMPEROR_INHIBIDOR_OFI_TRAIL = 0.30
-
-# ==============================================================================
-# IMPERIAL COMPOUNDING & DUAL-LLM CONSENSUS V7.2.0
-# ==============================================================================
-VERSION_SISTEMA = "7.2.0"
-EMPEROR_V7_2_KELLY_BOOST = 1.95
-EMPEROR_V7_2_KELLY_MAX_CAP = 0.58
-EMPEROR_V7_2_MODELO_PRIMARIO = "qwen/qwen3.8-27b"
-EMPEROR_V7_2_MODELO_SECUNDARIO = "llama-3.3-70b-versatile"
