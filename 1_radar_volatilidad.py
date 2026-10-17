@@ -660,11 +660,15 @@ async def cazar_anomalia_ws(exchange, symbol: str) -> None:
                 symbol in getattr(cfg, 'PARES_VETADOS_OOS_V7', ())
                 or __import__('time').time() < globals().get('_CUARENTENA_PUMP_V731', {}).get(symbol, 0.0)
                 or __import__('time').time() < globals().get('_CUARENTENA_VPIN_V731', {}).get(symbol, 0.0)
-                or _dp_v > -0.70
-                or not ((-2.90 <= _ema_v <= -1.32) or (-2.90 <= _ema_v <= -1.00 and _z_v <= -4.30 and _ih_v >= 0.55))
-                or _ih_v < 0.24
-                or _ofi_v < 0.35
-                or _z_v > -3.05
+                or _dp_v > -0.65
+                or not (
+                    (-2.90 <= _ema_v <= -1.25)
+                    or (-2.90 <= _ema_v <= -1.02 and _ofi_v >= 0.50 and _ih_v >= 0.45)
+                    or (-2.90 <= _ema_v <= -0.95 and _z_v <= -4.20 and _ih_v >= 0.50)
+                )
+                or _ih_v < 0.22
+                or _ofi_v < 0.32
+                or _z_v > -2.98
             ):
                         continue
             print(
