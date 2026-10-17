@@ -796,3 +796,13 @@ def _calcular_barrera_hjb_v74(pos, edad_seg: float = 0.0, ofi_actual: float = 0.
     prima_ofi = 0.0016 * ofi_pos * max(0.0, 1.0 - min(t_s, 180.0) / 180.0)
     tau = 0.0022 + prima_z + prima_ofi
     return min(0.0072, max(0.0022, tau))
+
+# ==============================================================================
+# _REGISTRO_GESTOR_V75: PUENTE O(1) PARA COPROCESADOR BIDIRECCIONAL
+# ==============================================================================
+import builtins as _b_ge_v75
+_orig_init_ge_v75 = Posicion.__init__
+def _wrapped_init_ge_v75(self, *args, **kwargs):
+    _orig_init_ge_v75(self, *args, **kwargs)
+    _b_ge_v75._SB_GESTOR_V75 = self
+Posicion.__init__ = _wrapped_init_ge_v75
