@@ -664,25 +664,24 @@ async def cazar_anomalia_ws(exchange, symbol: str) -> None:
                 or (
                     symbol in getattr(cfg, 'PARES_HIGH_BETA_V7', ('ZEREBRO/USDT:USDT', 'WAL/USDT:USDT'))
                     and (
-                        _dp_v > -0.62
+                        _dp_v > -0.58
                         or not (
-                            (-2.90 <= _ema_v <= -1.15)
-                            or (-2.90 <= _ema_v <= -0.92 and _ofi_v >= 0.45 and _ih_v >= 0.35)
-                            or (-2.90 <= _ema_v <= -0.85 and _z_v <= -4.00 and _ih_v >= 0.40)
+                            (-2.90 <= _ema_v <= -1.05)
+                            or (-2.90 <= _ema_v <= -0.82 and _ofi_v >= 0.45 and _ih_v >= 0.30)
                         )
-                        or _ih_v < 0.20
-                        or _ofi_v < 0.30
-                        or _z_v > (-3.05 if _ema_v <= -1.30 else -3.35)
+                        or _ih_v < 0.24
+                        or _ofi_v < 0.35
+                        or _z_v > (-3.00 if _ema_v <= -1.15 else -3.25)
                     )
                 )
                 or (
                     symbol not in getattr(cfg, 'PARES_HIGH_BETA_V7', ('ZEREBRO/USDT:USDT', 'WAL/USDT:USDT'))
                     and (
-                        _dp_v > -0.38
-                        or not (-2.50 <= _ema_v <= -0.45)
-                        or _ih_v < 0.18
-                        or _ofi_v < 0.28
-                        or _z_v > -2.88
+                        _dp_v > -0.32
+                        or not (-2.50 <= _ema_v <= -0.35)
+                        or _ih_v < 0.15
+                        or _ofi_v < 0.22
+                        or _z_v > -2.75
                     )
                 )
             ):
@@ -748,7 +747,7 @@ def _emperor_radar_print_v7(*args, **kwargs):
         if "[FRANCOTIRADOR]" in msg and "CIERRE " in msg:
             m_c = _re_radar_v7.search(r"CIERRE\s+([A-Z0-9]+/USDT:USDT)", msg)
             if m_c:
-                _COOLDOWN_SIMBOLO_V754[m_c.group(1)] = _time_radar_v7.time() + 180.0
+                _COOLDOWN_SIMBOLO_V754[m_c.group(1)] = _time_radar_v7.time() + 45.0
         if "VPIN=" in msg:
             m_vp = _re_radar_v7.search(r"\(([A-Z0-9]+/USDT:USDT)\s+OFI=[^\)]+VPIN=([0-9.]+)\)", msg)
             if m_vp and float(m_vp.group(2)) >= 0.50:

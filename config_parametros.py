@@ -530,8 +530,8 @@ SL_GRACIA_MECHAZO_SEG = 6.0
 # ==============================================================================
 # DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.5.0 (EMPEROR TIME - BIDIRECTIONAL PREDATOR)
 # ==============================================================================
-VERSION_SISTEMA = "7.5.4"
-NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_5_1_TRI_CORTEX_ENSEMBLE"
+VERSION_SISTEMA = "7.6.0"
+NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_6_0_GODSPEED"
 
 NUCLEO_ALFA_V7 = (
     "ZEREBRO/USDT:USDT",
@@ -589,8 +589,8 @@ PARES_EXCLUIDOS_OOS = set(BLACKLIST_PERMANENTE)
 CAIDA_MIN_FISICA_V7_PCT = -0.0038
 TECHO_EMA900_PCT = 0.0080
 ANCLAJE_CAGINALP_MAX_PCT = 0.0078
-HAWKES_BLOQUEO_SEG = 0.55
-RADAR_CADENCIA_SEG = 0.25
+HAWKES_BLOQUEO_SEG = 0.40
+RADAR_CADENCIA_SEG = 0.15
 TTL_MAKER_COMPRA_V7_SEG = 2.4
 OFI_MIN_MANTENER_COLA_V7 = 0.20
 Z_SNIPER_IOC_V7 = -3.60
@@ -627,7 +627,7 @@ SHORT_SL_BYBIT_PCT = 0.0120
 # ==============================================================================
 # ARQUITECTURA TRI-CORTEX ENSEMBLE V7.5.1 (GROQ LPU + GEMINI 2.5 + NVIDIA NIM)
 # ==============================================================================
-VERSION_SISTEMA = "7.5.4"
+VERSION_SISTEMA = "7.6.0"
 TRI_CORTEX_HABILITADO = True
 GEMINI_MODEL_PRIMARY = "gemini-3.5-flash-lite"
 GEMINI_MODEL_FALLBACK = "gemma-4-31b-it"

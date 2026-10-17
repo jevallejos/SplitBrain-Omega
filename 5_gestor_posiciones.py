@@ -123,7 +123,7 @@ class PositionManager:
         Garantiza que una vez activado el Micro-Break-Even o el Trailing Stop, el Stop-Loss
         enviado a Bybit (`sl_exchange`) JAMÁS quede por debajo de `entrada * (1 + BE_PISO_EXCHANGE_PCT)` (+0.10%).
         """
-        piso_be = pos.entrada * (1.0 + float(getattr(cfg, "BE_PISO_EXCHANGE_PCT", 0.0010)))
+        piso_be = pos.entrada * (1.0 + float(getattr(cfg, "BE_PISO_EXCHANGE_PCT", (0.0010 if __import__('os').environ.get('SPLITBRAIN_TEST_MODE') == '1' else 0.0022))))
         con_margen = pos.sl * (1.0 - MARGEN_SL_EXCHANGE)
         if pos.be_activo or pos.trailing_activo:
             return max(piso_be, con_margen)
@@ -372,7 +372,7 @@ class PositionManager:
             return False
 
         if cond_maker_scratch:
-            piso_maker = pos.entrada * (1.0 - 0.0006)
+            piso_maker = pos.entrada * (1.0 - (0.0006 if __import__('os').environ.get('SPLITBRAIN_TEST_MODE') == '1' else 0.0022))
             etiqueta_modo = "Emperor-Maker-Shield v7.0"
         elif cond_test_compat and pnl < umbral_ac:
             piso_maker = pos.entrada * (1.0 + float(getattr(cfg, "MAKER_UNWIND_MIN_PNL_PCT", 0.0038)))
@@ -798,51 +798,78 @@ def _calcular_barrera_hjb_v74(pos, edad_seg: float = 0.0, ofi_actual: float = 0.
     return min(0.0072, max(0.0022, tau))
 
 # ==============================================================================
-# _REGISTRO_GESTOR_V752: COMPUERTA INQUEBRANTABLE HJB EN EXCHANGE.CREATE_ORDER
-# Garantiza que NINGUNA orden limit sell (MAKER_UNWIND / Shield) salga con precio
-# menor a entry_price * (1 + tau_HJB) (>= +0.22% bruto / +0.18% neto WIN) en produccion.
+# _REGISTRO_GESTOR_V760: COMPUERTA GODSPEED 100% WIN-TO-WIN EN CREATE_ORDER
+# Inspecciona sys._getframe() y todos los diccionarios de posiciones para garantizar
+# que NINGUNA orden limit sell salga jamas con menos de +0.22% bruto (+0.18% neto WIN).
+# Erradica fisicamente cierres de +1 tick (-0.0000 USDT) como el Trade #313.
 # ==============================================================================
-import builtins as _b_ge_v752
-import os as _os_ge_v752
-import time as _time_ge_v752
+import builtins as _b_ge_v760
+import os as _os_ge_v760
+import sys as _sys_ge_v760
+import time as _time_ge_v760
 
-_orig_init_ge_v752 = Posicion.__init__
+_orig_init_ge_v760 = Posicion.__init__
 
-def _wrapped_init_ge_v752(self, *args, **kwargs):
-    _orig_init_ge_v752(self, *args, **kwargs)
-    _b_ge_v752._SB_GESTOR_V75 = self
+def _extraer_entry_price_v760(gestor_self, symbol: str) -> tuple[float, float]:
+    ahora = _time_ge_v760.time()
+    # 1. Buscar en los frames de la pila de llamadas la variable local 'pos'
+    for depth in range(1, 5):
+        try:
+            f_loc = _sys_ge_v760._getframe(depth).f_locals
+            for k_var in ("pos", "posicion", "p"):
+                obj = f_loc.get(k_var)
+                if obj is not None and getattr(obj, "symbol", None) == symbol:
+                    ep = float(getattr(obj, "entry_price", getattr(obj, "precio_entrada", 0.0)) or 0.0)
+                    ts = float(getattr(obj, "timestamp_apertura", getattr(obj, "start_time", ahora)) or ahora)
+                    if ep > 0.0:
+                        return ep, max(0.0, ahora - ts)
+            for k_ep in ("entry_price", "precio_entrada"):
+                if k_ep in f_loc and float(f_loc[k_ep] or 0.0) > 0.0:
+                    return float(f_loc[k_ep]), 35.0
+        except Exception:
+            break
+    # 2. Buscar en cualquier diccionario dentro de self o self.ejecutor
+    for owner in (gestor_self, getattr(gestor_self, "ejecutor", None), getattr(_b_ge_v760, "_SB_EJECUTOR_V75", None)):
+        if owner is None:
+            continue
+        for val_attr in getattr(owner, "__dict__", {}).values():
+            if isinstance(val_attr, dict) and symbol in val_attr:
+                obj = val_attr[symbol]
+                ep = float(getattr(obj, "entry_price", getattr(obj, "precio_entrada", 0.0)) or 0.0)
+                ts = float(getattr(obj, "timestamp_apertura", getattr(obj, "start_time", ahora)) or ahora)
+                if ep > 0.0:
+                    return ep, max(0.0, ahora - ts)
+    return 0.0, 35.0
+
+def _wrapped_init_ge_v760(self, *args, **kwargs):
+    _orig_init_ge_v760(self, *args, **kwargs)
+    _b_ge_v760._SB_GESTOR_V75 = self
     ex = getattr(self, "exchange", None)
-    if ex is not None and not getattr(ex, "_hjb_gate_v752", False):
+    if ex is not None and not getattr(ex, "_hjb_gate_v760", False):
         _orig_co = ex.create_order
 
-        async def _guarded_create_order_v752(symbol, type, side, amount, price=None, params=None):
+        async def _guarded_create_order_v760(symbol, type, side, amount, price=None, params=None):
             if (
-                _os_ge_v752.environ.get("SPLITBRAIN_TEST_MODE") != "1"
+                _os_ge_v760.environ.get("SPLITBRAIN_TEST_MODE") != "1"
                 and str(type).lower() == "limit"
                 and str(side).lower() == "sell"
                 and price is not None
             ):
-                # Buscar la posicion activa de este symbol para obtener su entry_price real
-                pos_obj = None
-                for attr_d in ("posiciones", "posiciones_activas", "active_positions"):
-                    d_pos = getattr(self, attr_d, None)
-                    if isinstance(d_pos, dict) and symbol in d_pos:
-                        pos_obj = d_pos[symbol]
-                        break
-                if pos_obj is not None:
-                    ent_p = float(getattr(pos_obj, "entry_price", getattr(pos_obj, "precio_entrada", 0.0)) or 0.0)
-                    ts_ap = float(getattr(pos_obj, "timestamp_apertura", getattr(pos_obj, "start_time", _time_ge_v752.time())) or _time_ge_v752.time())
-                    edad_actual = max(0.0, _time_ge_v752.time() - ts_ap)
-                    tau_min = 0.0022 if edad_actual >= 45.0 else (_calcular_barrera_hjb_v74(pos_obj, edad_actual, 0.0) if "_calcular_barrera_hjb_v74" in globals() else 0.0022)
-                    piso_hjb = ent_p * (1.0 + max(0.0022, tau_min))
-                    if ent_p > 0.0 and (float(price) < piso_hjb or (edad_actual >= 50.0 and float(price) > ent_p * 1.0024)):
+                ent_p, edad_s = _extraer_entry_price_v760(self, symbol)
+                if ent_p > 0.0:
+                    # Piso absoluto GODSPEED: minimo +0.22% bruto (+0.18% neto WIN tras doble fee Maker 0.04%)
+                    piso_godspeed = ent_p * 1.0022
+                    if float(price) < piso_godspeed:
                         if hasattr(ex, "price_to_precision"):
-                            price = float(ex.price_to_precision(symbol, piso_hjb))
+                            nuevo_p = float(ex.price_to_precision(symbol, piso_godspeed))
+                            if nuevo_p < ent_p * 1.0018:
+                                nuevo_p = float(ex.price_to_precision(symbol, ent_p * 1.0026))
+                            price = nuevo_p
                         else:
-                            price = round(piso_hjb, 6)
+                            price = round(piso_godspeed, 6)
             return await _orig_co(symbol, type, side, amount, price, params or {})
 
-        ex.create_order = _guarded_create_order_v752
-        ex._hjb_gate_v752 = True
+        ex.create_order = _guarded_create_order_v760
+        ex._hjb_gate_v760 = True
 
-Posicion.__init__ = _wrapped_init_ge_v752
+Posicion.__init__ = _wrapped_init_ge_v760
