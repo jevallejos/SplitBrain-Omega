@@ -530,7 +530,7 @@ SL_GRACIA_MECHAZO_SEG = 6.0
 # ==============================================================================
 # DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.5.0 (EMPEROR TIME - BIDIRECTIONAL PREDATOR)
 # ==============================================================================
-VERSION_SISTEMA = "7.5.2"
+VERSION_SISTEMA = "7.5.3"
 NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_5_1_TRI_CORTEX_ENSEMBLE"
 
 NUCLEO_ALFA_V7 = (
@@ -627,10 +627,10 @@ SHORT_SL_BYBIT_PCT = 0.0120
 # ==============================================================================
 # ARQUITECTURA TRI-CORTEX ENSEMBLE V7.5.1 (GROQ LPU + GEMINI 2.5 + NVIDIA NIM)
 # ==============================================================================
-VERSION_SISTEMA = "7.5.2"
+VERSION_SISTEMA = "7.5.3"
 TRI_CORTEX_HABILITADO = True
-GEMINI_MODEL_PRIMARY = "gemini-2.5-flash-lite"
-GEMINI_MODEL_FALLBACK = "gemini-2.0-flash"
+GEMINI_MODEL_PRIMARY = "gemini-3.5-flash-lite"
+GEMINI_MODEL_FALLBACK = "gemma-4-31b-it"
 NVIDIA_NIM_ENDPOINT = "https://integrate.api.nvidia.com/v1/chat/completions"
-NVIDIA_MODEL_FORENSE = "deepseek-ai/deepseek-r1"
-NVIDIA_MODEL_FALLBACK = "meta/llama-3.3-70b-instruct"
+NVIDIA_MODEL_FORENSE = "deepseek-ai/deepseek-v4.1-flash"
+NVIDIA_MODEL_FALLBACK = "nvidia/llama-3.1-nemotron-ultra-253b-v1"
