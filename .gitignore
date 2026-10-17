@@ -1,0 +1,11 @@
+# SplitBrain-Omega v7.0 - Archivos locales excluidos de Git
+.env
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.log
+*.lock
+*.jsonl
+.test_*
+.vscode/

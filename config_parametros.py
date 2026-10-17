@@ -1,0 +1,587 @@
+"""Configuración Maestra Institucional — SplitBRain-Code V6.4.0 (Zero-Zombie & High-Expectancy Maker Unwind).
+Arquitectura de Microestructura HFT en Bybit Perpetuos USDT (UTA).
+Cumple el 100% del contrato sintáctico AST (64+ constantes) de los 8 módulos y test_v6_2_suite.py.
+Calibrado empíricamente sobre 198 trades reales en sniper-tokio.
+"""
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# ==============================================================================
+# SECCIÓN 1: CREDENCIALES, ENTORNO, ARCHIVOS Y TELEMETRÍA
+# ==============================================================================
+BYBIT_API_KEY: str = os.getenv("BYBIT_API_KEY", "")
+BYBIT_API_SECRET: str = os.getenv("BYBIT_API_SECRET", "")
+API_KEY: str = BYBIT_API_KEY
+API_SECRET: str = BYBIT_API_SECRET
+
+GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+
+TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", os.getenv("TELEGRAM_TOKEN", ""))
+TELEGRAM_TOKEN: str = TELEGRAM_BOT_TOKEN
+TELEGRAM_CHAT_ID: str = os.getenv("TELEGRAM_CHAT_ID", "")
+TELEGRAM_ACTIVO: bool = bool(TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID)
+
+PAPER_TRADING: bool = os.getenv("PAPER_TRADING", "False").strip().lower() in ("true", "1", "yes")
+MODO_PAPER: bool = PAPER_TRADING
+MODO_TESTNET: bool = os.getenv("MODO_TESTNET", "False").strip().lower() in ("true", "1", "yes")
+
+LOCK_FILE: str = ".splitbrain.lock"
+ARCHIVO_LOCK: str = LOCK_FILE
+LOG_FILE: str = "bot_hft.log"
+ARCHIVO_LOG: str = LOG_FILE
+STATS_FILE: str = "splitbrain_stats_v6.jsonl"
+ARCHIVO_STATS: str = STATS_FILE
+
+DASHBOARD_INTERVALO_SEG: float = 300.0
+INTERVALO_DASHBOARD_SEG: float = DASHBOARD_INTERVALO_SEG
+HEARTBEAT_INTERVALO_SEG: float = 60.0
+
+# ==============================================================================
+# SECCIÓN 2: GESTIÓN DE CAPITAL UTA, KELLY FRACCIONAL Y ESTRUCTURA DE COMISIONES
+# ==============================================================================
+CAPITAL_BASE_USDT: float = 11.89
+CAPITAL_INICIAL_REFERENCIA: float = 11.89
+CAPITAL_INICIAL_USDT: float = 11.89
+
+APALANCAMIENTO: int = 3
+LEVERAGE: int = APALANCAMIENTO
+
+KELLY_FRACCION: float = 0.35
+KELLY_FRACTION: float = KELLY_FRACCION
+PORCENTAJE_CAPITAL_POR_TRADE: float = KELLY_FRACCION
+
+# Bloqueo estricto de posición única: erradica solapamientos correlacionados (-$0.4493 ahorrados)
+MAX_POSICIONES_SIMULTANEAS: int = 1
+MAX_POSICIONES_ABIERTAS: int = 1
+MAX_CONCURRENT_POSITIONS: int = 1
+MAX_POSICIONES: int = 1
+MAX_TRADES_SIMULTANEOS: int = 1
+
+MARGEN_MINIMO_OPERATIVO_USDT: float = 2.00
+MIN_FREE_MARGIN_USDT: float = MARGEN_MINIMO_OPERATIVO_USDT
+NOCIONAL_MINIMO_BYBIT_USDT: float = 5.00
+MIN_NOTIONAL_USDT: float = NOCIONAL_MINIMO_BYBIT_USDT
+FACTOR_SEGURIDAD_MARGEN: float = 0.95
+FACTOR_SEGURIDAD_LOTE_MIN: float = 1.15
+LOTE_MAX_PCT_NOCIONAL: float = 1.15
+
+# Estructura de comisiones Bybit Perpetuals UTA (VIP 0)
+FEE_MAKER: float = 0.00020          # 0.020% por orden PostOnly Limit
+FEE_TAKER: float = 0.00055          # 0.055% por orden Market
+MAKER_FEE: float = FEE_MAKER
+TAKER_FEE: float = FEE_TAKER
+FEE_ROUNDTRIP_MAKER_MAKER: float = FEE_MAKER + FEE_MAKER  # 0.040%
+FEE_ROUNDTRIP_MAKER_TAKER: float = FEE_MAKER + FEE_TAKER  # 0.075%
+FEE_ROUNDTRIP_ESTIMADO: float = FEE_ROUNDTRIP_MAKER_TAKER
+
+# ==============================================================================
+# SECCIÓN 3: UNIVERSO DE ACTIVOS TIER-1, BLACKLIST Y CÓDIGOS DE RECHAZO BYBIT
+# ==============================================================================
+TOP_N_PARES: int = 15
+TOP_PARES_VOLUMEN: int = TOP_N_PARES
+VOLUMEN_MIN_24H_USDT: float = 15_000_000.0
+MIN_VOLUMEN_24H_USDT: float = VOLUMEN_MIN_24H_USDT
+
+PARES_OBJETIVO = [
+    "NEAR/USDT:USDT",
+    "XRP/USDT:USDT",
+    "SOL/USDT:USDT",
+    "HYPE/USDT:USDT",
+    "STRK/USDT:USDT",
+    "ENA/USDT:USDT",
+    "ZEREBRO/USDT:USDT",
+    "ADA/USDT:USDT",
+    "PUMPFUN/USDT:USDT",
+    "WAL/USDT:USDT",
+    "1000PEPE/USDT:USDT",
+    "ZEC/USDT:USDT",
+    "UNI/USDT:USDT",
+]
+UNIVERSO_PARES = PARES_OBJETIVO
+PARES_CRYPTO = PARES_OBJETIVO
+
+PROHIBIDAS = {
+    "XAUT/USDT:USDT",
+    "PAXG/USDT:USDT",
+    "USDC/USDT:USDT",
+    "USDE/USDT:USDT",
+    "FDUSD/USDT:USDT",
+    "DAI/USDT:USDT",
+    "EUR/USDT:USDT",
+    "GBP/USDT:USDT",
+}
+
+BLACKLIST_PAIRS = {
+    "LUNA/USDT:USDT",
+    "LUNC/USDT:USDT",
+    "USTC/USDT:USDT",
+    "FTT/USDT:USDT",
+    "OMG/USDT:USDT",
+    "WAVES/USDT:USDT",
+    "ALPACA/USDT:USDT",
+    "BNX/USDT:USDT",
+}
+
+# Excluye "10001" para que una carrera al cerrar ("zero position") jamás vete a un par válido
+CODIGOS_BLACKLIST = (
+    "110004",
+    "110007",
+    "110012",
+    "110043",
+    "110066",
+    "170131",
+    "170135",
+    "170136",
+    "30208",
+)
+BYBIT_CODIGOS_BLACKLIST = CODIGOS_BLACKLIST
+DURACION_BLACKLIST_DINAMICA_SEG: float = 3600.0
+BLACKLIST_TTL_SEG: float = DURACION_BLACKLIST_DINAMICA_SEG
+
+ZONAS_EXCLUIDAS = {"innovation", "pre-market", "premarket"}
+EXCLUIR_ZONA_INNOVATION: bool = True
+
+# ==============================================================================
+# SECCIÓN 4: ESCUDO SEMÁNTICO RAM O(1) Y POOL DE MODELOS GROQ LPU (ORDEN ÓPTIMO TOKIO)
+# ==============================================================================
+GROQ_MODEL: str = "qwen/qwen3.8-27b"
+GROQ_MODEL_PRIMARY: str = GROQ_MODEL
+GROQ_MODEL_POOL = (
+    "qwen/qwen3.8-27b",
+    "allam-2-7b",
+    "openai/gpt-oss-20b",
+    "openai/gpt-oss-120b",
+)
+GROQ_CICLO_SEG: float = 180.0
+GROQ_INTERVALO_SEG: float = GROQ_CICLO_SEG
+GROQ_TIMEOUT_SEG: float = 6.0
+
+# ==============================================================================
+# SECCIÓN 5: MICROESTRUCTURA, VENTANA Z, CAMPO DE LYAPUNOV Y ANTICONTAGIO
+# ==============================================================================
+VENTANA_TICKS: int = 50
+VENTANA_Z_TICKS: int = VENTANA_TICKS
+MIN_TICKS_VENTANA: int = 20
+VENTANA_MIN_TICKS: int = MIN_TICKS_VENTANA
+VENTANA_TIEMPO_MAX_SEG: float = 25.0
+VENTANA_MAX_EDAD_SEG: float = VENTANA_TIEMPO_MAX_SEG
+
+PISO_SIGMA_RELATIVO: float = 0.0018
+SIGMA_PISO_MINIMO: float = PISO_SIGMA_RELATIVO
+UMBRAL_SIGMA_DINAMICO: float = PISO_SIGMA_RELATIVO
+
+RETORNO_MINIMO_CAIDA_PCT: float = -0.0055
+CAIDA_MINIMA_RELATIVA: float = RETORNO_MINIMO_CAIDA_PCT
+CAIDA_MIN_VENTANA_PCT: float = RETORNO_MINIMO_CAIDA_PCT
+
+# Z-Score riguroso en -3.00 para evitar entradas superficiales (-2.65 a -2.90)
+Z_SCORE_UMBRAL: float = -3.00
+UMBRAL_Z_SCORE: float = Z_SCORE_UMBRAL
+Z_UMBRAL: float = Z_SCORE_UMBRAL
+UMBRAL_Z: float = Z_SCORE_UMBRAL
+Z_MIN_ENTRADA: float = Z_SCORE_UMBRAL
+
+# Absorción compradora institucional verificada
+OFI_UMBRAL_MINIMO: float = 0.18
+UMBRAL_OFI_MINIMO: float = OFI_UMBRAL_MINIMO
+OFI_MIN_ENTRADA: float = OFI_UMBRAL_MINIMO
+OFI_MIN: float = OFI_UMBRAL_MINIMO
+
+VPIN_UMBRAL_MAXIMO: float = 0.65
+UMBRAL_VPIN_TOXICO: float = VPIN_UMBRAL_MAXIMO
+VPIN_MAX_ENTRADA: float = VPIN_UMBRAL_MAXIMO
+VPIN_MAX: float = VPIN_UMBRAL_MAXIMO
+
+SPREAD_MAX_PCT: float = 0.0012
+SPREAD_MAX_ENTRADA_PCT: float = SPREAD_MAX_PCT
+MAX_SPREAD_PCT: float = SPREAD_MAX_PCT
+
+EMA_MACRO_TICKS: int = 900
+EMA_TICKS_PERIODO: int = EMA_MACRO_TICKS
+DISTANCIA_MAX_SOBRE_EMA_PCT: float = 0.0080
+EMA_MAX_PREMIUM_PCT: float = DISTANCIA_MAX_SOBRE_EMA_PCT
+MAX_DISTANCIA_EMA_PCT: float = DISTANCIA_MAX_SOBRE_EMA_PCT
+
+LYAPUNOV_ACELERACION_MIN_PCT: float = -0.00025
+LYAPUNOV_MIN_ACCEL: float = LYAPUNOV_ACELERACION_MIN_PCT
+LYAPUNOV_ACELERACION_MIN: float = LYAPUNOV_ACELERACION_MIN_PCT
+
+CONTAGIO_UMBRAL_PARES: int = 3
+CONTAGIO_MIN_PARES: int = CONTAGIO_UMBRAL_PARES
+CONTAGIO_VENTANA_SEG: float = 10.0
+CONTAGIO_PAUSA_MACRO_SEG: float = 180.0
+CONTAGIO_COOLDOWN_SEG: float = CONTAGIO_PAUSA_MACRO_SEG
+
+COOLDOWN_PAR_SEG: float = 15.0
+COOLDOWN_DISPARO_SEG: float = COOLDOWN_PAR_SEG
+COOLDOWN_MISMO_PAR_SEG: float = COOLDOWN_PAR_SEG
+COOLDOWN_POST_CIERRE_SEG: float = 300.0
+
+# ==============================================================================
+# SECCIÓN 6: EJECUCIÓN SNIPER ZERO-REST Y PENNY-JUMPING DINÁMICO
+# ==============================================================================
+PENNY_JUMP_ACTIVO: bool = True
+PENNY_JUMP_OFI_UMBRAL: float = 0.25
+PENNY_JUMP_OFI_MIN: float = PENNY_JUMP_OFI_UMBRAL
+PENNY_JUMP_SPREAD_MIN_TICKS: int = 2
+
+TIMEOUT_ORDEN_LIMITE_SEG: float = 10.0
+TIEMPO_VIDA_ORDEN_SEG: float = TIMEOUT_ORDEN_LIMITE_SEG
+TIMEOUT_ORDEN_MAKER_SEG: float = TIMEOUT_ORDEN_LIMITE_SEG
+TIMEOUT_ENTRADA_SEG: float = TIMEOUT_ORDEN_LIMITE_SEG
+
+# ==============================================================================
+# SECCIÓN 7: GESTIÓN DE SALIDA V6.4.0 (MAKER-FIRST UNWIND & ANTI-ZOMBIE 3 ETAPAS)
+# ==============================================================================
+MODO_SALIDA: str = "TRAILING+MAKER_PFQI"
+
+TAKE_PROFIT_PCT: float = 0.0120
+TP_PORCENTAJE: float = TAKE_PROFIT_PCT
+TP_PCT: float = TAKE_PROFIT_PCT
+
+# Hard SL acotado a -1.25% interno y -1.50% en Bybit (erradica el -2.50% / -3.00% heredado)
+STOP_LOSS_PCT: float = 0.0115
+SL_PORCENTAJE: float = STOP_LOSS_PCT
+SL_PCT: float = STOP_LOSS_PCT
+SL_INTERNO_PCT: float = STOP_LOSS_PCT
+SL_BYBIT_PCT: float = 0.0165
+STOP_LOSS_BYBIT_PCT: float = 0.0165
+
+# Piso Invariante de Break-Even en Servidor Bybit
+BREAK_EVEN_ACTIVACION_PCT: float = 0.0045
+BREAK_EVEN_TRIGGER_PCT: float = BREAK_EVEN_ACTIVACION_PCT
+BE_ACTIVACION: float = BREAK_EVEN_ACTIVACION_PCT
+BE_ACTIVACION_PCT: float = BREAK_EVEN_ACTIVACION_PCT
+
+BREAK_EVEN_OFFSET_PCT: float = 0.0016
+BREAK_EVEN_PLUS_PCT: float = BREAK_EVEN_OFFSET_PCT
+BE_OFFSET: float = BREAK_EVEN_OFFSET_PCT
+BE_OFFSET_PCT: float = BREAK_EVEN_OFFSET_PCT
+
+BYBIT_BE_PISO_MIN_PCT: float = 0.0012
+BYBIT_BE_FLOOR_PCT: float = BYBIT_BE_PISO_MIN_PCT
+BYBIT_BE_PISO_PCT: float = BYBIT_BE_PISO_MIN_PCT
+
+# Trailing Stop Dinámico
+TRAIL_ACTIVACION_PCT: float = 0.0075
+TRAILING_ACTIVACION_PCT: float = TRAIL_ACTIVACION_PCT
+TRAIL_DISTANCIA_PCT: float = 0.0025
+TRAILING_DISTANCIA_PCT: float = TRAIL_DISTANCIA_PCT
+
+# Escalera de Desarme Pasivo Maker-First Unwind (Evita salidas prematuras de +0.10%)
+MAKER_UNWIND_ACTIVACION_PCT: float = 0.0052   # Tramo 1 (0s-75s): +0.52% bruto (~+$0.056 netos)
+MAKER_UNWIND_MADURO_PCT: float = 0.0032       # Tramo 2 (75s-135s): +0.32% bruto (~+$0.033 netos)
+MAKER_UNWIND_TARDIO_PCT: float = 0.0018       # Tramo 3 (135s-180s): +0.18% bruto (~+$0.017 netos)
+MAKER_UNWIND_TIMEOUT_SEG: float = 12.0
+MAKER_UNWIND_PERSISTENCIA_SEG: float = MAKER_UNWIND_TIMEOUT_SEG
+MAKER_UNWIND_MAX_INTENTOS: int = 3
+MAKER_UNWIND_OFI_ABORT: float = -0.18
+
+# Protocolo Anti-Zombie de 3 Etapas y Corte de Sangrado Incondicional
+EARLY_TOXIC_CHECK_SEG: int = 45
+EARLY_TOXIC_CUT_SEG: int = EARLY_TOXIC_CHECK_SEG
+EARLY_TOXIC_LOSS_PCT: float = -0.0065
+EARLY_TOXIC_HARD_LOSS_PCT: float = -0.0082    # Corta en >=45s aunque OFI sea neutro si cae <= -0.82%
+EARLY_TOXIC_OFI_MAX: float = -0.15
+EARLY_TOXIC_OFI_UMBRAL: float = EARLY_TOXIC_OFI_MAX
+
+STAGNATION_CHECK_SEG: int = 105
+STAGNATION_CUT_SEG: int = STAGNATION_CHECK_SEG
+STAGNATION_BAND_MIN_PCT: float = -0.0035
+STAGNATION_MIN_PNL_PCT: float = STAGNATION_BAND_MIN_PCT
+STAGNATION_BAND_MAX_PCT: float = 0.0015
+STAGNATION_MAX_PNL_PCT: float = STAGNATION_BAND_MAX_PCT
+STAGNATION_OFI_MAX: float = 0.02
+
+# Umbral de salida por flujo tóxico OFI (evita falsas alarmas antes de 45s)
+OFI_EXIT_UMBRAL: float = -0.55
+OFI_EXIT_MIN_HOLD_SEG: int = 40
+OFI_EXIT_MIN_LOSS_PCT: float = -0.0035
+
+TIEMPO_MAX_HOLD_SEG: int = 180
+RECONCILIACION_MAX_EDAD_SEG: int = TIEMPO_MAX_HOLD_SEG
+
+INTERVALO_MONITOREO_POS_SEG: float = 0.5
+WS_POSITIONS_STREAM_ACTIVO: bool = True
+RECONCILIACION_BOOT_ACTIVA: bool = True
+# Alias AST adicionales blindados
+TOP_N = 15
+UMBRAL_PANICO = -2.6
+UMBRAL_OFI_TOXICO = 0.08
+CAIDA_MIN_PCT = -0.0045
+EMA_MACRO_VENTANA_SEG = 900
+TECHO_MACRO_EMA_PCT = 0.008
+LYAPUNOV_ACCEL_MIN = -0.00025
+VPIN_MAX_TOXICO = 0.72
+VOL_MAX_P99_REL = 0.0065
+MAX_SPREAD_REL_ENTRADA = 0.0012
+PERMITIR_ZONA_INNOVATION = False
+STD_MIN = 1e-08
+STD_REL_FLOOR = 0.0005
+Z_MAX_ABS = 50.0
+KELLY_MAX_PCT = 0.35
+MIN_INVERSION_USDT = 2.0
+MAX_MIN_QTY_KELLY_RATIO = 0.6
+ESPERA_LLENADO_SEG = 10
+KEEPALIVE_SOCKET_SEG = 45.0
+WS_KEEPALIVE_MS = 10000
+WS_MAX_PING_MISSES = 5.0
+MOTOR_SALIDA = 'TRAILING'
+EARLY_TOXIC_HOLD_SEG = 45
+STAGNATION_HOLD_SEG = 105
+STAGNATION_LOSS_PCT = -0.0022
+MAKER_UNWIND_STALL_SEG = 65
+MAKER_UNWIND_MIN_PNL_PCT = 0.0012
+MAKER_UNWIND_OFI_TECHO = 0.18
+MAKER_PERSISTENCIA_SEG = 12.0
+SL_INICIAL_PCT = 0.0088
+BE_PISO_EXCHANGE_PCT = 0.001
+OFI_SALIDA_EMERGENCIA = -0.42
+OFI_SALIDA_MIN_LOSS_PCT = -0.0025
+OFI_SALIDA_VENTANA_SEG = 10
+SYNC_SL_EXCHANGE_SEG = 5
+GAMMA_AS = 0.05
+KAPPA_AS = 1.5
+BLOQUEO_BTC_SEG = 300
+OFI_REANUDACION_BTC = 0.3
+OFI_REANUDACION_VENTANA_SEG = 30
+RECUPERACION_MIN_PCT = 0.5
+GROQ_MODELOS = ('openai/gpt-oss-20b', 'llama-3.3-70b-versatile', 'llama-3.1-8b-instant')
+
+# ==============================================================================
+# CALIBRACION CUANTITATIVA V6.4.1 (ANTI-WICK SL + HAWKES CLIMAX + ALMGREN-CHRISS)
+# ==============================================================================
+MAX_POSICIONES_SIMULTANEAS = 1
+MAX_POSICIONES_ABIERTAS = 1
+MAX_CONCURRENT_POSITIONS = 1
+MAX_POSICIONES = 1
+MAX_TRADES_SIMULTANEOS = 1
+
+BLACKLIST_PAIRS = {
+    "LUNA/USDT:USDT",
+    "LUNC/USDT:USDT",
+    "USTC/USDT:USDT",
+    "FTT/USDT:USDT",
+    "OMG/USDT:USDT",
+    "WAVES/USDT:USDT",
+    "ALPACA/USDT:USDT",
+    "BNX/USDT:USDT",
+    "WLD/USDT:USDT",
+    "ZRO/USDT:USDT",
+    "DOGE/USDT:USDT",
+    "ONDO/USDT:USDT",
+    "TRUTH/USDT:USDT",
+}
+PARES_DRENADORES_VETADOS = (
+    "WLD/USDT:USDT",
+    "ZRO/USDT:USDT",
+    "DOGE/USDT:USDT",
+    "ONDO/USDT:USDT",
+    "TRUTH/USDT:USDT",
+)
+PARES_NUCLEO_ALFA = (
+    "ZEREBRO/USDT:USDT",
+    "WAL/USDT:USDT",
+    "STRK/USDT:USDT",
+    "INJ/USDT:USDT",
+    "XRP/USDT:USDT",
+    "1000PEPE/USDT:USDT",
+    "HYPE/USDT:USDT",
+)
+Z_SCORE_NUCLEO_ALFA = -2.90
+Z_SCORE_SECUNDARIOS_OOS = -3.35
+
+Z_SCORE_UMBRAL = -2.90
+UMBRAL_Z_SCORE = -2.90
+Z_UMBRAL = -2.90
+UMBRAL_Z = -2.90
+OFI_UMBRAL_MINIMO = 0.08
+UMBRAL_OFI_MINIMO = 0.08
+OFI_MIN_ENTRADA = 0.08
+
+HAWKES_OFI_DECAY_BETA = 0.45
+HAWKES_TOXIC_FLOOR_5S = -0.45
+HAWKES_COOLDOWN_TOXICO_SEG = 3.2
+HAWKES_COOLDOWN_CLIMAX_SEG = 1.2
+DISTANCIA_MAX_SOBRE_EMA_PCT = 0.0080
+EMA_MAX_PREMIUM_ENTRADA_NORMAL_PCT = 0.0015
+
+# Jerarquia correcta de Stop Loss V6.4.1:
+# - SL Interno: -1.15% (con gracia de 18s para absorber mechazo de entrada)
+# - SL Bybit (Servidor): -1.65% (respaldo catastrofico; evita cierres SL_EXCHANGE en 10s)
+STOP_LOSS_PCT = 0.0115
+SL_PORCENTAJE = 0.0115
+SL_PCT = 0.0122
+SL_INTERNO_PCT = 0.0115
+SL_BYBIT_PCT = 0.0165
+STOP_LOSS_BYBIT_PCT = 0.0165
+BYBIT_SL_PCT = 0.0165
+SL_GRACIA_MECHAZO_SEG = 18.0
+ANTI_REENTRADA_BAJO_SL_SEG = 900.0
+
+EARLY_TOXIC_CHECK_SEG = 45
+EARLY_TOXIC_CUT_SEG = 45
+EARLY_TOXIC_LOSS_PCT = -0.0065
+EARLY_TOXIC_HARD_LOSS_PCT = -0.0075
+EARLY_TOXIC_OFI_MAX = -0.15
+
+# Curva Hiperbolica de Almgren-Chriss para Maker-Unwind
+MAKER_UNWIND_ACTIVACION_PCT = 0.0052
+MAKER_UNWIND_TRAMO2_PCT = 0.0032
+MAKER_UNWIND_TRAMO3_PCT = 0.0020
+ALMGREN_CHRISS_KAPPA = 2.10
+REQUOTE_TRIGGER_SEG = 3.5
+VOL_MAX_P99_ALFA_REL = 0.0085
+REPLICADOR_QUARANTINE_SEG = 3600.0
+KELLY_MIN_DINAMICO_PCT = 0.25
+KELLY_MAX_DINAMICO_PCT = 0.42
+TARGET_SIGMA_REL = 0.0022
+
+# ==============================================================================
+# CALIBRACION DE FRECUENCIA Y DESBLOQUEO HAWKES V6.4.3 (BASADO EN BOT_LOG.TXT)
+# ==============================================================================
+PARES_NUCLEO_ALFA = (
+    "ZEREBRO/USDT:USDT",
+    "WAL/USDT:USDT",
+    "STRK/USDT:USDT",
+    "INJ/USDT:USDT",
+    "TIA/USDT:USDT",
+    "XRP/USDT:USDT",
+    "1000PEPE/USDT:USDT",
+    "HYPE/USDT:USDT",
+)
+Z_SCORE_NUCLEO_ALFA = -2.85
+Z_SCORE_SECUNDARIOS_OOS = -3.15
+
+HAWKES_COOLDOWN_TOXICO_SEG = 1.6
+HAWKES_COOLDOWN_CLIMAX_SEG = 0.0
+HAWKES_INTENSIDAD_DESBLOQUEO = 0.18
+
+CONTAGIO_MIN_PARES = 3
+CONTAGIO_VENTANA_SEG = 10.0
+BLOQUEO_CONTAGIO_ALT_SEG = 90.0
+
+REQUOTE_TRIGGER_SEG = 2.0
+REQUOTE_MAX_DRIFT_PCT = 0.0028
+REQUOTE_MIN_OFI = 0.30
+BLACKLIST_PAIRS.add("AAVE/USDT:USDT")
+
+# ==============================================================================
+# CALIBRACION SHAPLEY ELITE V6.4.4 (REPLICATOR DYNAMICS + WAL #1 + SL -0.88%/-1.22%)
+# ==============================================================================
+UNIVERSO_SHAPLEY_ELITE = [
+    "WAL/USDT:USDT",
+    "ZEREBRO/USDT:USDT",
+    "INJ/USDT:USDT",
+    "XRP/USDT:USDT",
+    "STRK/USDT:USDT",
+    "AVAX/USDT:USDT",
+    "1000PEPE/USDT:USDT",
+    "HYPE/USDT:USDT",
+    "TIA/USDT:USDT",
+    "ARB/USDT:USDT",
+]
+
+PARES_NUCLEO_ALFA = (
+    "WAL/USDT:USDT",
+    "ZEREBRO/USDT:USDT",
+    "INJ/USDT:USDT",
+    "XRP/USDT:USDT",
+    "STRK/USDT:USDT",
+    "AVAX/USDT:USDT",
+    "1000PEPE/USDT:USDT",
+    "HYPE/USDT:USDT",
+    "TIA/USDT:USDT",
+)
+
+# Pares con Esperanza E_i < 0 demostrada en los 276 trades (-0.5619 USDT en secundarios + -0.8267 USDT en drenadores)
+PARES_DRENADORES_VETADOS = (
+    "WLD/USDT:USDT",
+    "ZRO/USDT:USDT",
+    "DOGE/USDT:USDT",
+    "ONDO/USDT:USDT",
+    "TRUTH/USDT:USDT",
+    "PUMPFUN/USDT:USDT",
+    "NEAR/USDT:USDT",
+    "ADA/USDT:USDT",
+    "ENA/USDT:USDT",
+    "UNI/USDT:USDT",
+    "AAVE/USDT:USDT",
+    "TAO/USDT:USDT",
+)
+
+Z_SCORE_NUCLEO_ALFA = -2.85
+Z_SCORE_SECUNDARIOS_OOS = -3.20
+
+# Jerarquía de Stop-Loss calibrada para evitar pérdidas de -0.185 USDT:
+# - SL Interno = -0.88% (con ventana de gracia de 6.0s contra ruido inicial menor a -1.08%)
+# - SL Bybit   = -1.22% (respaldo en servidor)
+SL_INICIAL_PCT = 0.0088
+SL_INTERNO_PCT = 0.0088
+STOP_LOSS_PCT = 0.0088
+SL_PCT = 0.0122
+SL_BYBIT_PCT = 0.0122
+STOP_LOSS_BYBIT_PCT = 0.0122
+BYBIT_SL_PCT = 0.0122
+SL_GRACIA_MECHAZO_SEG = 6.0
+
+# ==============================================================================
+# DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.0.0 (EMPEROR'S TIME)
+# ==============================================================================
+VERSION_SISTEMA = "7.0.0"
+NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7"
+
+# Ley V: Universo Operativo Puro (Restitución de WAL y Purga Total de Drenadores OOS)
+NUCLEO_ALFA_V7 = (
+    "WAL/USDT:USDT",
+    "ZEREBRO/USDT:USDT",
+    "STRK/USDT:USDT",
+    "INJ/USDT:USDT",
+    "TIA/USDT:USDT",
+    "HYPE/USDT:USDT",
+    "AVAX/USDT:USDT",
+    "TAO/USDT:USDT",
+    "ARB/USDT:USDT",
+    "NEAR/USDT:USDT",
+    "1000PEPE/USDT:USDT",
+    "XRP/USDT:USDT",
+    "ADA/USDT:USDT",
+    "UNI/USDT:USDT",
+    "ENA/USDT:USDT",
+)
+
+PARES_VETADOS_OOS_V7 = frozenset({
+    "PUMPFUN/USDT:USDT",
+    "TRUTH/USDT:USDT",
+    "WLD/USDT:USDT",
+    "ZRO/USDT:USDT",
+    "DOGE/USDT:USDT",
+    "ONDO/USDT:USDT",
+    "AAVE/USDT:USDT",
+})
+BLACKLIST_PERMANENTE = set(PARES_VETADOS_OOS_V7)
+PARES_EXCLUIDOS_OOS = set(PARES_VETADOS_OOS_V7)
+
+# Ley I: Filtro Escarlata de Dislocación Física y Techo Único EMA900
+CAIDA_MIN_FISICA_V7_PCT = -0.0072     # Exige al menos -0.72% de caída real (fin de falsos Z en -0.48%)
+TECHO_EMA900_PCT = 0.0080             # Unifica techo en +0.80%
+ANCLAJE_CAGINALP_MAX_PCT = 0.0078     # Desbloquea pullbacks saludables en TIA (+0.18% a +0.53%)
+HAWKES_BLOQUEO_SEG = 1.1              # Ventana ágil de absorción
+
+# Ley II: Ejecución Bifásica (TTL 2.4s + Sniper IOC en Capitulación)
+TTL_MAKER_COMPRA_V7_SEG = 2.4         # Cancela órdenes no llenadas en 2.4s (evita fills tóxicos a los 4.7s)
+OFI_MIN_MANTENER_COLA_V7 = 0.20       # Si OFI cae < +0.20 en la cola, aborta compra
+Z_SNIPER_IOC_V7 = -3.60               # Capitulación profunda para disparo IOC
+CAIDA_SNIPER_IOC_V7_PCT = -0.0115     # -1.15% caída mínima para IOC
+OFI_SNIPER_IOC_V7 = 0.75              # Absorción explosiva para IOC
+SLIPPAGE_MAX_IOC_V7 = 0.0003          # +0.03% límite máximo sobre best_ask
+
+# Ley III y IV: Supervivencia GJR-GARCH y Escudo Pasivo Maker (+0.10%)
+SL_INICIAL_PCT = 0.0185               # -1.85% SL lógico interno (con confirmación anti-mecha)
+SL_BYBIT_PCT = 0.0250                 # -2.50% Hard-Stop catastrófico en Bybit (siempre > SL_INICIAL_PCT)
+MAKER_UNWIND_TARGET_PCT = 0.0048      # +0.48% objetivo mínimo Maker-Unwind (prohibido cerrar en +0.05%)
+EMPEROR_PASSIVE_SHIELD_SEG = 55.0     # Tras 55s sin BE, coloca salida pasiva PostOnly en +0.10%
+EMPEROR_PASSIVE_SHIELD_PCT = 0.0010   # +0.10% bruto (+0.06% neto positivo tras comisiones Maker)
+EMPEROR_INHIBIDOR_OFI_TRAIL = 0.30    # Si OFI_10s >= +0.30, inhibe Maker-Unwind y deja correr Trailing

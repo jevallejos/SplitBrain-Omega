@@ -1,0 +1,4 @@
+﻿ccxt
+groq
+aiohttp
+python-dotenv
