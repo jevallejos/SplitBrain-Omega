@@ -18,7 +18,7 @@ import ccxt.pro as ccxt
 import config_parametros as cfg
 
 _RAIZ = Path(__file__).resolve().parent
-LOG_FILE = _RAIZ / (".test_bot_hft.log" if os.environ.get("SPLITBRAIN_TEST_MODE") == "1" else "bot_hft.log")
+LOG_FILE = _RAIZ / (".test_bot_hft.log" if os.environ.get("SPLITBRAIN_TEST_MODE") == "1" else ('.test_bot_hft.log' if __import__('os').environ.get('SPLITBRAIN_TEST_MODE') == '1' else 'bot_hft.log'))
 LOCK_FILE = _RAIZ / ".splitbrain.lock"
 _lock_file_handle = None
 _lock_adquirido_por_mi: bool = False
@@ -305,7 +305,7 @@ async def main():
 
         if excluidos_lote:
             print(
-                f"[MAIN] Filtro de lote mínimo V6.4.0 excluyó pares indivisibles: "
+                f"[MAIN] Filtro de lote mínimo V7.0.0 excluyó pares indivisibles: "
                 f"{', '.join(excluidos_lote[:6])}"
             )
 

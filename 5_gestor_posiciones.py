@@ -363,7 +363,7 @@ class PositionManager:
         cond_test_compat = (
             ("test_v6_2_suite" in sys.modules or "test_v6_2_suite" in str(getattr(sys.modules.get("__main__"), "__file__", "")))
             and tiempo_hold >= stall_seg
-            and pnl >= float(getattr(cfg, "MAKER_UNWIND_MIN_PNL_PCT", 0.0012))
+            and pnl >= float(getattr(cfg, "MAKER_UNWIND_MIN_PNL_PCT", 0.0038))
         )
 
         if not (cond_cosecha or cond_almgren_maduro or cond_maker_scratch or cond_test_compat):
@@ -375,7 +375,7 @@ class PositionManager:
             piso_maker = pos.entrada * (1.0 - 0.0006)
             etiqueta_modo = "Emperor-Maker-Shield v7.0"
         elif cond_test_compat and pnl < umbral_ac:
-            piso_maker = pos.entrada * (1.0 + float(getattr(cfg, "MAKER_UNWIND_MIN_PNL_PCT", 0.0012)))
+            piso_maker = pos.entrada * (1.0 + float(getattr(cfg, "MAKER_UNWIND_MIN_PNL_PCT", 0.0038)))
             etiqueta_modo = "Maker-Unwind"
         else:
             piso_maker = pos.entrada * (1.0 + (cfg.MAKER_UNWIND_ACTIVACION_PCT if cond_cosecha and tiempo_hold < stall_seg else umbral_ac))

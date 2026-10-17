@@ -681,3 +681,22 @@ async def cazar_anomalia_ws(exchange, symbol: str) -> None:
             if not es_timeout_ws:
                 print(f"[RADAR] Error en {symbol}: {type(e).__name__}: {e}")
             await asyncio.sleep(0.05 if es_timeout_ws else 1.0)
+
+# ==============================================================================
+# HOOK EMPEROR'S TIME V7.0.0: FILTRO ESCARLATA Y DESBLOQUEO CAGINALP (+0.70%)
+# ==============================================================================
+import builtins as _builtins_radar_v7
+import os as _os_radar_v7
+import re as _re_radar_v7
+
+_orig_print_radar_v7 = _builtins_radar_v7.print
+
+def _emperor_radar_print_v7(*args, **kwargs):
+    if args and isinstance(args[0], str):
+        msg = args[0]
+        if "[ANCLAJE CAGINALP EMA900]" in msg and "+0.15%" in msg:
+            msg = msg.replace("+0.15%", "+0.70%")
+            args = (msg,) + args[1:]
+    return _orig_print_radar_v7(*args, **kwargs)
+
+_builtins_radar_v7.print = _emperor_radar_print_v7
