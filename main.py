@@ -239,7 +239,7 @@ async def _auditar_margen_libre(exchange) -> float:
         estado = "LISTO PARA DISPARAR" if margen_disparo >= cfg.MIN_INVERSION_USDT else "MUNICIÓN BAJA (< 2.0 USDT)"
         print(
             f"[MAIN] Auditoría UTA USDT -> Total: {total:.4f} | Libre RAM: {libre:.4f} | "
-            f"Bloqueado: {usado:.4f} | Margen Kelly (35%): {margen_disparo:.2f} USDT "
+            f"Bloqueado: {usado:.4f} | Margen Kelly Imperial (58%): {margen_disparo:.2f} USDT "
             f"(Nocional 3x: {nocional_kelly:.2f} USDT) [{estado}]"
         )
         return nocional_kelly
@@ -252,7 +252,7 @@ async def main():
     adquirir_bloqueo_instancia_unica()
     loop_name = type(asyncio.get_running_loop()).__name__
     print("==================================================================")
-    print("INICIANDO CEREBRO CENTRAL SPLITBRAIN-OMEGA (V7.1.1 - EMPEROR'S TIME PURE ALPHA 11)")
+    print("INICIANDO CEREBRO CENTRAL SPLITBRAIN-OMEGA (V7.2.0 - EMPEROR'S TIME IMPERIAL COMPOUNDING)")
     print("==================================================================")
     print(f"[MAIN] Bloqueo de instancia física adquirido exitosamente (PID {os.getpid()} | Loop: {loop_name}).")
     print(f"[MAIN] Telemetría local con sellado de tiempo activa en: {LOG_FILE.name}")
@@ -312,7 +312,7 @@ async def main():
         print(
             f"[MAIN] Modo Paper: {cfg.MODO_PAPER} | Motor Salida: {cfg.MOTOR_SALIDA}+MAKER_PFQI | "
             f"OFI Min: {cfg.UMBRAL_OFI_TOXICO:+.2f} | Hold Máx: {cfg.TIEMPO_MAX_HOLD_SEG}s "
-            f"(Emperor v7.1 WIN-to-WIN: Cosecha +0.48% | Piso Maker +0.22% | Cero OFI_EXIT) | "
+            f"(Emperor v7.2 Imperial: Kelly Boost 58% (~18.3 USDT) | Dual-LPU | Piso Maker +0.22%) | "
             f"BE: +{cfg.BE_ACTIVACION_PCT:.2%} | Trail: +{cfg.TRAIL_ACTIVACION_PCT:.2%}"
         )
         print(f"[MAIN] Radar fijado en {len(presas)} pares cripto-nativos Tier-1 viables.")

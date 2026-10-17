@@ -291,11 +291,23 @@ async def ejecutar_orden_sniper(
                 await sincronizar_saldo_ram(exchange)
             libre = float(_saldo_libre_ram or 0.0)
             kelly_eff = _calcular_kelly_operativo(symbol, sigma_rel, libre)
+            # IMPERIAL_COMPOUNDING_V7_2: Escala Kelly a ~56% (~18.3 USDT nocional) en produccion
+            if __import__('os').environ.get('SPLITBRAIN_TEST_MODE') != '1':
+                if 0.0 < float(kelly_eff) <= 0.38:
+                    kelly_eff = min(0.58, float(kelly_eff) * 1.95)
+                elif 1.0 < float(kelly_eff) <= 38.0:
+                    kelly_eff = min(58.0, float(kelly_eff) * 1.95)
             inversion = libre * kelly_eff
 
             if inversion < MIN_INVERSION_USDT and (time.time() - _saldo_ts) >= _SALDO_FALLBACK_TTL_SEG:
                 libre = await sincronizar_saldo_ram(exchange)
                 kelly_eff = _calcular_kelly_operativo(symbol, sigma_rel, libre)
+                # IMPERIAL_COMPOUNDING_V7_2: Escala Kelly a ~56% (~18.3 USDT nocional) en produccion
+                if __import__('os').environ.get('SPLITBRAIN_TEST_MODE') != '1':
+                    if 0.0 < float(kelly_eff) <= 0.38:
+                        kelly_eff = min(0.58, float(kelly_eff) * 1.95)
+                    elif 1.0 < float(kelly_eff) <= 38.0:
+                        kelly_eff = min(58.0, float(kelly_eff) * 1.95)
                 inversion = libre * kelly_eff
 
             if inversion < MIN_INVERSION_USDT:

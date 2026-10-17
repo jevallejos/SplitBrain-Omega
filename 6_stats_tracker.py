@@ -295,7 +295,7 @@ class StatsTracker:
             f" MAP: {r['map_usdt']:.2f} USDT | PnL/MAP: {r['pnl_to_map']:+.4f} | LVR: {r['lvr_total_usdt']:.4f}",
             f" Balance: {r['balance_teorico']:.4f} USDT (base {self.capital_base:.2f})   real: {real}",
         ]
-        cab = " [CAJA NEGRA] SPLITBRAIN V7.1.1 EMPEROR'S TIME "
+        cab = " [CAJA NEGRA] SPLITBRAIN V7.2.0 EMPEROR'S TIME "
         out = ["╔" + cab.center(ancho, "═") + "╗"]
         out += ["║" + l.ljust(ancho)[:ancho] + "║" for l in lineas]
         out.append("╚" + "═" * ancho + "╝")

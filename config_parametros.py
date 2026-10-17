@@ -530,8 +530,8 @@ SL_GRACIA_MECHAZO_SEG = 6.0
 # ==============================================================================
 # DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.1.1 (EMPEROR'S TIME - PURE ALPHA 11)
 # ==============================================================================
-VERSION_SISTEMA = "7.1.1"
-NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_1_1_PURE_ALPHA"
+VERSION_SISTEMA = "7.2.0"
+NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_2_IMPERIAL_COMPOUNDING"
 
 # Ley V (V7.1.1): 11 Campeones de Alta Reversión (Purga de TIA, ENA, NEAR y ADA < 46% WR)
 NUCLEO_ALFA_V7 = (
@@ -595,3 +595,12 @@ MAKER_UNWIND_TARGET_PCT = 0.0048
 EMPEROR_PASSIVE_SHIELD_SEG = 55.0
 EMPEROR_PASSIVE_SHIELD_PCT = 0.0010
 EMPEROR_INHIBIDOR_OFI_TRAIL = 0.30
+
+# ==============================================================================
+# IMPERIAL COMPOUNDING & DUAL-LLM CONSENSUS V7.2.0
+# ==============================================================================
+VERSION_SISTEMA = "7.2.0"
+EMPEROR_V7_2_KELLY_BOOST = 1.95
+EMPEROR_V7_2_KELLY_MAX_CAP = 0.58
+EMPEROR_V7_2_MODELO_PRIMARIO = "qwen/qwen3.8-27b"
+EMPEROR_V7_2_MODELO_SECUNDARIO = "llama-3.3-70b-versatile"

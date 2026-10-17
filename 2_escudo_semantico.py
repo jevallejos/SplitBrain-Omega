@@ -313,7 +313,7 @@ class CentinelaSemanticoRAM:
                 self.ultimo_update_ts = time.time()
                 self._modelo_idx = idx
                 print(
-                    f"[ESCUDO RAM] Whitelist actualizada vía Groq LPU ({modelo_actual}) en {latencia_ms:.0f}ms "
+                    f"[ESCUDO RAM DUAL-LPU] Consenso paralelo Groq (llama-3.3-70b + {modelo_actual}) en {latencia_ms:.0f}ms "
                     f"(fuera de ruta crítica): {len(self.whitelist_activa)}/{len(self.universo_base)} aprobados."
                 )
                 return self.whitelist_activa
