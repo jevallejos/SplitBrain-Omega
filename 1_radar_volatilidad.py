@@ -661,8 +661,8 @@ async def cazar_anomalia_ws(exchange, symbol: str) -> None:
                 or __import__('time').time() < globals().get('_CUARENTENA_PUMP_V731', {}).get(symbol, 0.0)
                 or __import__('time').time() < globals().get('_CUARENTENA_VPIN_V731', {}).get(symbol, 0.0)
                 or _dp_v > -0.70
-                or not ((-2.90 <= _ema_v <= -1.35) or (-2.90 <= _ema_v <= -1.05 and _z_v <= -4.50))
-                or _ih_v < 0.22
+                or not ((-2.90 <= _ema_v <= -1.32) or (-2.90 <= _ema_v <= -1.00 and _z_v <= -4.30 and _ih_v >= 0.55))
+                or _ih_v < 0.24
                 or _ofi_v < 0.35
                 or _z_v > -3.05
             ):
@@ -703,7 +703,7 @@ async def cazar_anomalia_ws(exchange, symbol: str) -> None:
             await asyncio.sleep(0.05 if es_timeout_ws else 1.0)
 
 # ==============================================================================
-# HOOK EMPEROR TIME V7.3.1: CUARENTENA ANTI-PUMP (300s) Y ANTI-VPIN (45s)
+# HOOK EMPEROR TIME V7.4.0: CUARENTENA ANTI-PUMP (300s) Y ANTI-VPIN (45s)
 # ==============================================================================
 import builtins as _builtins_radar_v7
 import re as _re_radar_v7

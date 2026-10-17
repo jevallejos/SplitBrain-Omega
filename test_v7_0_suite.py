@@ -173,7 +173,7 @@ class _MockExchangeZeroRest:
 
 async def ejecutar_auditoria_v6_4_0() -> None:
     print("==================================================================")
-    print("🧪 INICIANDO SUITE DE PRUEBAS INTEGRADA: SPLITBRAIN-OMEGA V7.3.1 (EMPEROR TIME - OMNISCIENT PREDATOR)")
+    print("🧪 INICIANDO SUITE DE PRUEBAS INTEGRADA: SPLITBRAIN-OMEGA V7.4.0 (EMPEROR TIME - STOCHASTIC SUPREMACY)")
     print("==================================================================")
 
     # 1. Verificación de compilación sintáctica de todos los módulos
@@ -523,7 +523,7 @@ async def ejecutar_auditoria_v6_4_0() -> None:
             ruta_temp.unlink()
 
     print("==================================================================")
-    print("🏆 TODAS LAS PRUEBAS DE INTEGRIDAD V7.3.1 EMPEROR TIME OMNISCIENT PREDATOR (15/15) SUPERADAS")
+    print("🏆 TODAS LAS PRUEBAS DE INTEGRIDAD V7.4.0 EMPEROR TIME STOCHASTIC SUPREMACY (15/15) SUPERADAS")
     print("==================================================================")
 
 

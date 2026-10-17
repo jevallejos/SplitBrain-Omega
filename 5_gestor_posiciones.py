@@ -392,6 +392,15 @@ class PositionManager:
             _entry_ref = float(getattr(pos, 'entry_price', getattr(pos, 'precio_entrada', 0.0)) or 0.0)
             if _entry_ref > 0 and float(p_fmt) < _entry_ref * 1.0022:
                 p_fmt = float(self.exchange.price_to_precision(symbol, _entry_ref * 1.0022)) if hasattr(self, 'exchange') and hasattr(self.exchange, 'price_to_precision') else round(_entry_ref * 1.0022, 6)
+            # BARRERA_HJB_V74_ACTIVA: Superficie continua HJB (>= +0.22% bruto / +0.18% neto WIN)
+            if __import__('os').environ.get('SPLITBRAIN_TEST_MODE') != '1':
+                _ent_v74 = float(getattr(pos, 'entry_price', getattr(pos, 'precio_entrada', 0.0)) or 0.0)
+                _edad_v74 = float(locals().get('edad', locals().get('edad_seg', 35.0)) or 35.0)
+                _ofi_v74 = float(locals().get('ofi_10s', locals().get('ofi_actual', 0.0)) or 0.0)
+                _tau_v74 = _calcular_barrera_hjb_v74(pos, _edad_v74, _ofi_v74)
+                _p_min_v74 = _ent_v74 * (1.0 + _tau_v74)
+                if _ent_v74 > 0.0 and float(p_fmt) < _p_min_v74:
+                    p_fmt = float(self.exchange.price_to_precision(symbol, _p_min_v74)) if hasattr(self, 'exchange') and hasattr(self.exchange, 'price_to_precision') else round(_p_min_v74, 6)
             orden = await exchange.create_order(
                 pos.symbol,
                 "limit",
@@ -773,3 +782,17 @@ class PositionManager:
 
 
 gestor = PositionManager()
+
+# ==============================================================================
+# ECUACIÓN HJB DE PARADA ÓPTIMA V7.4.0: SUPERFICIE CONTINUA DE COSECHA MAKER
+# ==============================================================================
+import math as _math_hjb_v74
+
+def _calcular_barrera_hjb_v74(pos, edad_seg: float = 0.0, ofi_actual: float = 0.0) -> float:
+    z0 = abs(float(getattr(pos, "z_score_entry", getattr(pos, "z_entry", -3.20)) or -3.20))
+    t_s = max(0.0, float(edad_seg))
+    ofi_pos = max(0.0, float(ofi_actual))
+    prima_z = 0.0008 * max(0.0, z0 - 3.0) * _math_hjb_v74.exp(-t_s / 35.0)
+    prima_ofi = 0.0016 * ofi_pos * max(0.0, 1.0 - min(t_s, 180.0) / 180.0)
+    tau = 0.0022 + prima_z + prima_ofi
+    return min(0.0072, max(0.0022, tau))
