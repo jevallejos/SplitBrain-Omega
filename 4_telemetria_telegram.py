@@ -24,3 +24,16 @@ async def enviar_alerta(mensaje: str):
     except Exception:
         # Telegram caído o lento: jamás bloquear el event loop.
         pass
+
+# NORMALIZADOR_TELEGRAM_V7_1_1: Garantiza firma oficial en todo despacho Telegram
+try:
+    _orig_enviar_tg_v7 = enviar_alerta_telegram
+    async def enviar_alerta_telegram(mensaje: str, *args, **kwargs):
+        if isinstance(mensaje, str):
+            mensaje = mensaje.replace(
+                "Motor SPLITBRAIN V6.4.0 (Zero-Zombie & Maker-First Unwind)",
+                "Motor SPLITBRAIN-Omega V7.1.1 (Emperor's Time)",
+            )
+        return await _orig_enviar_tg_v7(mensaje, *args, **kwargs)
+except NameError:
+    pass

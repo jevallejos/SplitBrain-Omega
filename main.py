@@ -336,7 +336,7 @@ async def main():
         if not gestor_mod.gestor.posiciones and bal_real_init is not None:
             stats.tracker.sincronizar_capital_base_con_real(bal_real_init)
         stats.tracker.imprimir_dashboard(bal_real_init)
-        sniper.enviar_alerta_bg("🟩 Motor SPLITBRAIN V6.4.0 (Zero-Zombie & Maker-First Unwind) Inicializado.")
+        sniper.enviar_alerta_bg("🟩 Motor SPLITBRAIN-Omega V7.1.1 (Emperor's Time) Inicializado.")
 
         # 1. Tarea de Circuit Breaker Global BTC con Evacuación Activa
         tareas.append(asyncio.create_task(radar.cazar_cisne_negro(exchange)))
