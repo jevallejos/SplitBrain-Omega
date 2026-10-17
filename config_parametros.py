@@ -528,12 +528,11 @@ BYBIT_SL_PCT = 0.0122
 SL_GRACIA_MECHAZO_SEG = 6.0
 
 # ==============================================================================
-# DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.3.0 (EMPEROR'S TIME - PARALLEL FUTURE)
+# DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.3.1 (EMPEROR TIME - OMNISCIENT PREDATOR)
 # ==============================================================================
-VERSION_SISTEMA = "7.3.0"
-NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_3_PARALLEL_FUTURE"
+VERSION_SISTEMA = "7.3.1"
+NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_3_1_OMNISCIENT_PREDATOR"
 
-# Cartera Depredadora V7.3.0: 7 Campeones con Expectativa Histórica 100% Positiva (+0.7102 USDT)
 NUCLEO_ALFA_V7 = (
     "ZEREBRO/USDT:USDT",
     "WAL/USDT:USDT",
@@ -544,7 +543,6 @@ NUCLEO_ALFA_V7 = (
     "ARB/USDT:USDT",
 )
 
-# Purga total de activos con asimetría negativa (incluyendo STRK -0.7181 USDT)
 PARES_VETADOS_OOS_V7 = frozenset({
     "PUMPFUN/USDT:USDT",
     "TRUTH/USDT:USDT",
@@ -574,7 +572,6 @@ BLACKLIST_PERMANENTE = {
 }
 PARES_EXCLUIDOS_OOS = set(BLACKLIST_PERMANENTE)
 
-# Invariantes Matemáticos Parallel Future V7.3.0
 CAIDA_MIN_FISICA_V7_PCT = -0.0072
 TECHO_EMA900_PCT = 0.0080
 ANCLAJE_CAGINALP_MAX_PCT = 0.0078
@@ -585,13 +582,14 @@ Z_SNIPER_IOC_V7 = -3.60
 CAIDA_SNIPER_IOC_V7_PCT = -0.0115
 OFI_SNIPER_IOC_V7 = 0.75
 SLIPPAGE_MAX_IOC_V7 = 0.0003
-EMPEROR_V7_3_EMA900_MAX_CRASH_PCT = -2.90   # Bloquea cuchillas estructurales (< -2.90% bajo EMA900)
-EMPEROR_V7_3_EMA900_MIN_DIST_PCT = -0.52    # Exige estiramiento mínimo <= -0.52% bajo EMA900
-EMPEROR_V7_3_HAWKES_MIN = 0.22              # Exige absorción de Hawkes sólida (>= +0.22)
-EMPEROR_V7_3_SHIELD_SEG = 42.0              # Escudo Maker adelantado de 85s a 42s (evita colapso a los 80s)
-SL_INICIAL_PCT = 0.0095                     # -0.95% SL lógico interno en producción
-SL_BYBIT_PCT = 0.0135                       # -1.35% SL catastrófico Bybit (reduce pérdida máx en 46.5%)
-MAKER_UNWIND_TARGET_PCT = 0.0048
-EMPEROR_PASSIVE_SHIELD_SEG = 42.0
+EMPEROR_V7_3_EMA900_MAX_CRASH_PCT = -2.90
+EMPEROR_V7_3_EMA900_MIN_DIST_PCT = -1.35
+EMPEROR_V7_3_HAWKES_MIN = 0.22
+EMPEROR_V7_3_SHIELD_SEG = 32.0
+EMPEROR_V7_3_MAKER_HARVEST_PCT = 0.0034
+SL_INICIAL_PCT = 0.0095
+SL_BYBIT_PCT = 0.0135
+MAKER_UNWIND_TARGET_PCT = 0.0038
+EMPEROR_PASSIVE_SHIELD_SEG = 32.0
 EMPEROR_PASSIVE_SHIELD_PCT = 0.0010
 EMPEROR_INHIBIDOR_OFI_TRAIL = 0.30

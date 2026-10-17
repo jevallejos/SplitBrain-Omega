@@ -656,7 +656,16 @@ async def cazar_anomalia_ws(exchange, symbol: str) -> None:
                 )
                 if _m_rad:
                     _z_v, _dp_v, _ema_v, _ofi_v, _ih_v = (float(_m_rad.group(k)) for k in range(1, 6))
-                    if symbol in getattr(cfg, 'PARES_VETADOS_OOS_V7', ()) or _dp_v > -0.68 or _ema_v > -0.52 or _ema_v < -2.90 or _ih_v < 0.22 or _z_v > -3.05:
+                    if (
+                symbol in getattr(cfg, 'PARES_VETADOS_OOS_V7', ())
+                or __import__('time').time() < globals().get('_CUARENTENA_PUMP_V731', {}).get(symbol, 0.0)
+                or __import__('time').time() < globals().get('_CUARENTENA_VPIN_V731', {}).get(symbol, 0.0)
+                or _dp_v > -0.70
+                or not ((-2.90 <= _ema_v <= -1.35) or (-2.90 <= _ema_v <= -1.05 and _z_v <= -4.50))
+                or _ih_v < 0.22
+                or _ofi_v < 0.35
+                or _z_v > -3.05
+            ):
                         continue
             print(
                 f"[RADAR] {symbol} Z={z_actual:.2f} ({caida_rel:.2%} | EMA900 {desv_ema_macro:+.2%}) "
@@ -694,20 +703,31 @@ async def cazar_anomalia_ws(exchange, symbol: str) -> None:
             await asyncio.sleep(0.05 if es_timeout_ws else 1.0)
 
 # ==============================================================================
-# HOOK EMPEROR'S TIME V7.0.0: FILTRO ESCARLATA Y DESBLOQUEO CAGINALP (+0.70%)
+# HOOK EMPEROR TIME V7.3.1: CUARENTENA ANTI-PUMP (300s) Y ANTI-VPIN (45s)
 # ==============================================================================
 import builtins as _builtins_radar_v7
-import os as _os_radar_v7
 import re as _re_radar_v7
+import time as _time_radar_v7
 
-_orig_print_radar_v7 = _builtins_radar_v7.print
+_CUARENTENA_PUMP_V731 = {}
+_CUARENTENA_VPIN_V731 = {}
+_orig_print_radar_v7 = getattr(_builtins_radar_v7, "_orig_print_root_v7", _builtins_radar_v7.print)
+_builtins_radar_v7._orig_print_root_v7 = _orig_print_radar_v7
 
 def _emperor_radar_print_v7(*args, **kwargs):
     if args and isinstance(args[0], str):
         msg = args[0]
-        if "[ANCLAJE CAGINALP EMA900]" in msg and "+0.70%" in msg:
-            msg = msg.replace("+0.70%", "+0.70%")
+        if "[ANCLAJE CAGINALP EMA900]" in msg and "+0.15%" in msg:
+            msg = msg.replace("+0.15%", "+0.70%")
             args = (msg,) + args[1:]
+        if "[ANTI-PUMP-TOP]" in msg:
+            m_sym = _re_radar_v7.search(r"([A-Z0-9]+/USDT:USDT)", msg)
+            if m_sym:
+                _CUARENTENA_PUMP_V731[m_sym.group(1)] = _time_radar_v7.time() + 300.0
+        if "VPIN=" in msg:
+            m_vp = _re_radar_v7.search(r"\(([A-Z0-9]+/USDT:USDT)\s+OFI=[^\)]+VPIN=([0-9.]+)\)", msg)
+            if m_vp and float(m_vp.group(2)) >= 0.50:
+                _CUARENTENA_VPIN_V731[m_vp.group(1)] = _time_radar_v7.time() + 45.0
     return _orig_print_radar_v7(*args, **kwargs)
 
 _builtins_radar_v7.print = _emperor_radar_print_v7
