@@ -173,7 +173,7 @@ class _MockExchangeZeroRest:
 
 async def ejecutar_auditoria_v6_4_0() -> None:
     print("==================================================================")
-    print("🧪 INICIANDO SUITE DE PRUEBAS INTEGRADA: SPLITBRAIN-OMEGA V7.4.2 (EMPEROR TIME - MULTI-ASSET ADAPTIVE REFLEX)")
+    print("🧪 INICIANDO SUITE DE PRUEBAS INTEGRADA: SPLITBRAIN-OMEGA V7.5.1 (EMPEROR TIME - TRI-CORTEX ENSEMBLE)")
     print("==================================================================")
 
     # 1. Verificación de compilación sintáctica de todos los módulos
@@ -523,7 +523,7 @@ async def ejecutar_auditoria_v6_4_0() -> None:
             ruta_temp.unlink()
 
     print("==================================================================")
-    print("🏆 TODAS LAS PRUEBAS DE INTEGRIDAD V7.4.2 EMPEROR TIME MULTI-ASSET ADAPTIVE REFLEX (15/15) SUPERADAS")
+    print("🏆 TODAS LAS PRUEBAS DE INTEGRIDAD V7.5.1 EMPEROR TIME TRI-CORTEX ENSEMBLE (15/15) SUPERADAS")
     print("==================================================================")
 
 
