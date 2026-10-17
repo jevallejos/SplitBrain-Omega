@@ -671,7 +671,7 @@ async def cazar_anomalia_ws(exchange, symbol: str) -> None:
                         )
                         or _ih_v < 0.20
                         or _ofi_v < 0.30
-                        or _z_v > -2.95
+                        or _z_v > (-3.05 if _ema_v <= -1.30 else -3.35)
                     )
                 )
                 or (

@@ -530,7 +530,7 @@ SL_GRACIA_MECHAZO_SEG = 6.0
 # ==============================================================================
 # DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.5.0 (EMPEROR TIME - BIDIRECTIONAL PREDATOR)
 # ==============================================================================
-VERSION_SISTEMA = "7.5.1"
+VERSION_SISTEMA = "7.5.2"
 NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_5_1_TRI_CORTEX_ENSEMBLE"
 
 NUCLEO_ALFA_V7 = (
@@ -627,7 +627,7 @@ SHORT_SL_BYBIT_PCT = 0.0120
 # ==============================================================================
 # ARQUITECTURA TRI-CORTEX ENSEMBLE V7.5.1 (GROQ LPU + GEMINI 2.5 + NVIDIA NIM)
 # ==============================================================================
-VERSION_SISTEMA = "7.5.1"
+VERSION_SISTEMA = "7.5.2"
 TRI_CORTEX_HABILITADO = True
 GEMINI_MODEL_PRIMARY = "gemini-2.5-flash-lite"
 GEMINI_MODEL_FALLBACK = "gemini-2.0-flash"

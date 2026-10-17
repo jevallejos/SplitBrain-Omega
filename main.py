@@ -252,7 +252,7 @@ async def main():
     adquirir_bloqueo_instancia_unica()
     loop_name = type(asyncio.get_running_loop()).__name__
     print("==================================================================")
-    print("INICIANDO CEREBRO CENTRAL SPLITBRAIN-OMEGA (V7.5.1 - EMPEROR TIME - TRI-CORTEX ENSEMBLE)")
+    print("INICIANDO CEREBRO CENTRAL SPLITBRAIN-OMEGA (V7.5.2 - EMPEROR TIME - TRI-CORTEX ENSEMBLE)")
     print("==================================================================")
     print(f"[MAIN] Bloqueo de instancia física adquirido exitosamente (PID {os.getpid()} | Loop: {loop_name}).")
     print(f"[MAIN] Telemetría local con sellado de tiempo activa en: {LOG_FILE.name}")

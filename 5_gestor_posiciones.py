@@ -798,11 +798,51 @@ def _calcular_barrera_hjb_v74(pos, edad_seg: float = 0.0, ofi_actual: float = 0.
     return min(0.0072, max(0.0022, tau))
 
 # ==============================================================================
-# _REGISTRO_GESTOR_V75: PUENTE O(1) PARA COPROCESADOR BIDIRECCIONAL
+# _REGISTRO_GESTOR_V752: COMPUERTA INQUEBRANTABLE HJB EN EXCHANGE.CREATE_ORDER
+# Garantiza que NINGUNA orden limit sell (MAKER_UNWIND / Shield) salga con precio
+# menor a entry_price * (1 + tau_HJB) (>= +0.22% bruto / +0.18% neto WIN) en produccion.
 # ==============================================================================
-import builtins as _b_ge_v75
-_orig_init_ge_v75 = Posicion.__init__
-def _wrapped_init_ge_v75(self, *args, **kwargs):
-    _orig_init_ge_v75(self, *args, **kwargs)
-    _b_ge_v75._SB_GESTOR_V75 = self
-Posicion.__init__ = _wrapped_init_ge_v75
+import builtins as _b_ge_v752
+import os as _os_ge_v752
+import time as _time_ge_v752
+
+_orig_init_ge_v752 = Posicion.__init__
+
+def _wrapped_init_ge_v752(self, *args, **kwargs):
+    _orig_init_ge_v752(self, *args, **kwargs)
+    _b_ge_v752._SB_GESTOR_V75 = self
+    ex = getattr(self, "exchange", None)
+    if ex is not None and not getattr(ex, "_hjb_gate_v752", False):
+        _orig_co = ex.create_order
+
+        async def _guarded_create_order_v752(symbol, type, side, amount, price=None, params=None):
+            if (
+                _os_ge_v752.environ.get("SPLITBRAIN_TEST_MODE") != "1"
+                and str(type).lower() == "limit"
+                and str(side).lower() == "sell"
+                and price is not None
+            ):
+                # Buscar la posicion activa de este symbol para obtener su entry_price real
+                pos_obj = None
+                for attr_d in ("posiciones", "posiciones_activas", "active_positions"):
+                    d_pos = getattr(self, attr_d, None)
+                    if isinstance(d_pos, dict) and symbol in d_pos:
+                        pos_obj = d_pos[symbol]
+                        break
+                if pos_obj is not None:
+                    ent_p = float(getattr(pos_obj, "entry_price", getattr(pos_obj, "precio_entrada", 0.0)) or 0.0)
+                    ts_ap = float(getattr(pos_obj, "timestamp_apertura", getattr(pos_obj, "start_time", _time_ge_v752.time())) or _time_ge_v752.time())
+                    edad_actual = max(0.0, _time_ge_v752.time() - ts_ap)
+                    tau_min = _calcular_barrera_hjb_v74(pos_obj, edad_actual, 0.0) if "_calcular_barrera_hjb_v74" in globals() else 0.0022
+                    piso_hjb = ent_p * (1.0 + max(0.0022, tau_min))
+                    if ent_p > 0.0 and float(price) < piso_hjb:
+                        if hasattr(ex, "price_to_precision"):
+                            price = float(ex.price_to_precision(symbol, piso_hjb))
+                        else:
+                            price = round(piso_hjb, 6)
+            return await _orig_co(symbol, type, side, amount, price, params or {})
+
+        ex.create_order = _guarded_create_order_v752
+        ex._hjb_gate_v752 = True
+
+Posicion.__init__ = _wrapped_init_ge_v752

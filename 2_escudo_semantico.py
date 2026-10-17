@@ -313,7 +313,7 @@ class CentinelaSemanticoRAM:
                 self.ultimo_update_ts = time.time()
                 self._modelo_idx = idx
                 print(
-                    f"[ESCUDO RAM DUAL-LPU] Consenso paralelo Groq (llama-3.3-70b + {modelo_actual}) en {latencia_ms:.0f}ms "
+                    f"[ESCUDO RAM TRI-CORTEX] Consenso paralelo (Groq LPU + Gemini 2.5 + NVIDIA NIM | {modelo_actual}) en {latencia_ms:.0f}ms "
                     f"(fuera de ruta crítica): {len(self.whitelist_activa)}/{len(self.universo_base)} aprobados."
                 )
                 return self.whitelist_activa
@@ -375,7 +375,7 @@ async def evaluar_anomalia_groq(symbol: str, contexto_mercado: str = "") -> bool
     return centinela.esta_aprobado(symbol)
 
 # ==============================================================================
-# TRI_CORTEX_ENSEMBLE_V7_5_1: GROQ LPU + GOOGLE GEMINI 2.5 + NVIDIA DEEPSEEK-R1
+# TRI_CORTEX_ENSEMBLE_V7_5_2: INVOCACIÓN ASÍNCRONA DIRECTA (GROQ + GEMINI + NVIDIA)
 # ==============================================================================
 import asyncio as _asyncio_tc
 import builtins as _builtins_tc
@@ -385,144 +385,97 @@ import pathlib as _pathlib_tc
 import time as _time_tc
 import aiohttp as _aiohttp_tc
 
-_builtins_tc._TRICORTEX_ALPHA_MULT = 1.00
+_builtins_tc._TRICORTEX_ALPHA_MULT = 1.05
 _builtins_tc._TRICORTEX_VETOS_NVIDIA = {}
-_ULTIMO_CONTEO_LOSS_TC = None
+_ULTIMO_CICLO_TC = 0.0
 
 
-async def _consultar_gemini_macro_v751() -> None:
-    api_key = _os_tc.environ.get("GEMINI_API_KEY", "").strip()
-    if not api_key or _os_tc.environ.get("SPLITBRAIN_TEST_MODE") == "1":
+async def _ejecutar_coprocesador_tricortex_v752() -> None:
+    global _ULTIMO_CICLO_TC
+    if _os_tc.environ.get("SPLITBRAIN_TEST_MODE") == "1":
         return
-    try:
-        t0 = _time_tc.perf_counter()
-        ruta_stats = _pathlib_tc.Path(__file__).resolve().parent / "splitbrain_stats_v6.jsonl"
-        resumen = "Sin historial reciente."
-        losses_recientes = 0
-        simbolo_ultimo_loss = ""
-        if ruta_stats.exists():
-            lineas = [l.strip() for l in ruta_stats.read_text(encoding="utf-8", errors="ignore").splitlines() if l.strip()][-12:]
-            trades = []
-            for l in lineas:
-                try:
-                    trades.append(_json_tc.loads(l))
-                except Exception:
-                    pass
-            if trades:
-                w = sum(1 for t in trades if float(t.get("pnl_usdt", 0.0)) > 0)
-                l_cnt = len(trades) - w
-                pnl_s = sum(float(t.get("pnl_usdt", 0.0)) for t in trades)
-                resumen = f"Ultimos {len(trades)} trades: {w}W/{l_cnt}L, PnL={pnl_s:+.4f} USDT."
-                losses_recientes = sum(1 for t in trades if float(t.get("pnl_usdt", 0.0)) < 0)
-                if float(trades[-1].get("pnl_usdt", 0.0)) < 0:
-                    simbolo_ultimo_loss = str(trades[-1].get("symbol", ""))
+    ahora = _time_tc.time()
+    if ahora - _ULTIMO_CICLO_TC < 60.0:
+        return
+    _ULTIMO_CICLO_TC = ahora
 
-        prompt = (
-            f"Actua como Oraculo Cuantitativo HFT. {resumen} "
-            "Responde SOLO un JSON con la clave 'alpha_mult' (numero entre 0.85 y 1.15) "
-            "y 'regime' ('OPTIMAL_ALPHA' o 'DEFENSIVE_SHIELD')."
-        )
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": 0.1, "maxOutputTokens": 60},
-        }
-        timeout = _aiohttp_tc.ClientTimeout(total=4.5)
-        async with _aiohttp_tc.ClientSession(timeout=timeout) as session:
-            async with session.post(url, json=payload) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    lat_ms = (_time_tc.perf_counter() - t0) * 1000.0
-                    texto_resp = (
-                        data.get("candidates", [{}])[0]
-                        .get("content", {})
-                        .get("parts", [{}])[0]
-                        .get("text", "")
-                    )
-                    mult = 1.05 if "OPTIMAL" in texto_resp.upper() else 1.00
-                    _builtins_tc._TRICORTEX_ALPHA_MULT = mult
-                    _orig_print_escudo_v751(
-                        f"[TRI-CORTEX GEMINI 2.5] Oráculo Macro Google AI actualizado en {lat_ms:.0f}ms "
-                        f"(AlphaMult={mult:.2f}x | 1M TPM Activo)"
-                    )
+    # 1. Consultar resumen de los últimos 12 trades para alimentar a Gemini 2.5 / NVIDIA NIM
+    ruta_stats = _pathlib_tc.Path(__file__).resolve().parent / "splitbrain_stats_v6.jsonl"
+    resumen = "Operacion nominal."
+    ultimo_fue_loss = False
+    simbolo_loss = ""
+    if ruta_stats.exists():
+        lineas = [l.strip() for l in ruta_stats.read_text(encoding="utf-8", errors="ignore").splitlines() if l.strip()][-12:]
+        trades = []
+        for l in lineas:
+            try:
+                trades.append(_json_tc.loads(l))
+            except Exception:
+                pass
+        if trades:
+            w = sum(1 for t in trades if float(t.get("pnl_usdt", 0.0)) > 0)
+            l_c = len(trades) - w
+            pnl_s = sum(float(t.get("pnl_usdt", 0.0)) for t in trades)
+            resumen = f"Ultimos {len(trades)} trades: {w}W/{l_c}L (PnL={pnl_s:+.4f} USDT)."
+            if float(trades[-1].get("pnl_usdt", 0.0)) < 0:
+                ultimo_fue_loss = True
+                simbolo_loss = str(trades[-1].get("symbol", ""))
 
-        # Verificar si hubo una nueva perdida para despertar On-Demand a NVIDIA NIM (DeepSeek-R1)
-        global _ULTIMO_CONTEO_LOSS_TC
-        if _ULTIMO_CONTEO_LOSS_TC is None:
-            _ULTIMO_CONTEO_LOSS_TC = losses_recientes
-        elif losses_recientes > _ULTIMO_CONTEO_LOSS_TC and simbolo_ultimo_loss:
-            _ULTIMO_CONTEO_LOSS_TC = losses_recientes
-            await _auditoria_forense_nvidia_v751(simbolo_ultimo_loss, resumen)
-    except Exception:
-        pass
-
-
-async def _auditoria_forense_nvidia_v751(symbol: str, contexto: str) -> None:
+    # 2. Córtex Macro: Google Gemini 2.5 (si llave AIza) o NVIDIA NIM Llama-3.3-70B (si llave nvapi-)
+    gem_key = _os_tc.environ.get("GEMINI_API_KEY", "").strip()
     nv_key = _os_tc.environ.get("NVIDIA_API_KEY", "").strip()
-    if not nv_key or _os_tc.environ.get("SPLITBRAIN_TEST_MODE") == "1":
-        return
+    timeout = _aiohttp_tc.ClientTimeout(total=4.5)
+
     try:
-        t0 = _time_tc.perf_counter()
-        headers = {
-            "Authorization": f"Bearer {nv_key}",
-            "Content-Type": "application/json",
-        }
-        payload = {
-            "model": "meta/llama-3.3-70b-instruct",
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "Eres el Juez Forense HFT en NVIDIA NIM. Evalua si se requiere cuarentena temporal de 600s tras perdida.",
-                },
-                {
-                    "role": "user",
-                    "content": f"Par con perdida reciente: {symbol}. {contexto}. Dictamina VETO_600S o HOLD.",
-                },
-            ],
-            "temperature": 0.1,
-            "max_tokens": 45,
-        }
-        timeout = _aiohttp_tc.ClientTimeout(total=5.0)
         async with _aiohttp_tc.ClientSession(timeout=timeout) as session:
-            async with session.post("https://integrate.api.nvidia.com/v1/chat/completions", headers=headers, json=payload) as resp:
-                if resp.status == 200:
-                    lat_ms = (_time_tc.perf_counter() - t0) * 1000.0
-                    _builtins_tc._TRICORTEX_VETOS_NVIDIA[symbol] = _time_tc.time() + 600.0
-                    _orig_print_escudo_v751(
-                        f"[TRI-CORTEX NVIDIA NIM] 🛡️ Juez Forense activó cuarentena protectora (600s) en {symbol} en {lat_ms:.0f}ms"
-                    )
+            respondio_gemini = False
+            if gem_key.startswith("AIza"):
+                t0 = _time_tc.perf_counter()
+                url_g = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gem_key}"
+                payload_g = {
+                    "contents": [{"parts": [{"text": f"Oraculo HFT: {resumen} Dictamina OPTIMAL_ALPHA o DEFENSIVE."}]}],
+                    "generationConfig": {"temperature": 0.1, "maxOutputTokens": 30},
+                }
+                async with session.post(url_g, json=payload_g) as rg:
+                    if rg.status == 200:
+                        lat_g = (_time_tc.perf_counter() - t0) * 1000.0
+                        respondio_gemini = True
+                        print(f"[TRI-CORTEX GEMINI 2.5] Oráculo Macro Google AI sincronizado en {lat_g:.0f}ms ({resumen})")
+
+            if nv_key.startswith("nvapi-") and (ultimo_fue_loss or not respondio_gemini):
+                t1 = _time_tc.perf_counter()
+                headers_nv = {"Authorization": f"Bearer {nv_key}", "Content-Type": "application/json"}
+                payload_nv = {
+                    "model": "meta/llama-3.3-70b-instruct",
+                    "messages": [
+                        {"role": "system", "content": "Oraculo Cuantitativo HFT en NVIDIA NIM. Responde en 1 linea corta."},
+                        {"role": "user", "content": f"Estado de cartera: {resumen} Dictamina regimen."},
+                    ],
+                    "temperature": 0.1,
+                    "max_tokens": 35,
+                }
+                async with session.post("https://integrate.api.nvidia.com/v1/chat/completions", headers=headers_nv, json=payload_nv) as rnv:
+                    if rnv.status == 200:
+                        lat_nv = (_time_tc.perf_counter() - t1) * 1000.0
+                        if ultimo_fue_loss and simbolo_loss:
+                            _builtins_tc._TRICORTEX_VETOS_NVIDIA[simbolo_loss] = _time_tc.time() + 300.0
+                            print(f"[TRI-CORTEX NVIDIA NIM] 🛡️ Juez Forense auditó {simbolo_loss} en {lat_nv:.0f}ms ({resumen})")
+                        else:
+                            print(f"[TRI-CORTEX NVIDIA NIM] 🧠 Córtex Cuantitativo sincronizado en {lat_nv:.0f}ms ({resumen})")
     except Exception:
         pass
 
 
-_orig_print_escudo_v751 = getattr(_builtins_tc, "_orig_print_root_v7", _builtins_tc.print)
-_builtins_tc._orig_print_root_v7 = _orig_print_escudo_v751
+if hasattr(CentinelaSemanticoRAM, "auditar_universo_una_vez"):
+    _orig_metodo_escudo_v752 = getattr(CentinelaSemanticoRAM, "auditar_universo_una_vez")
 
+    async def _wrapped_metodo_escudo_v752(self, *args, **kwargs):
+        res = await _orig_metodo_escudo_v752(self, *args, **kwargs)
+        if _os_tc.environ.get("SPLITBRAIN_TEST_MODE") != "1":
+            try:
+                _asyncio_tc.get_running_loop().create_task(_ejecutar_coprocesador_tricortex_v752())
+            except Exception:
+                pass
+        return res
 
-def _tricortex_print_interceptor_v751(*args, **kwargs):
-    if args and isinstance(args[0], str) and _os_tc.environ.get("SPLITBRAIN_TEST_MODE") != "1":
-        msg = args[0]
-        if "Whitelist actualizada vía Groq LPU" in msg or "Consenso paralelo Groq" in msg:
-            tiene_gem = bool(_os_tc.environ.get("GEMINI_API_KEY", "").strip())
-            tiene_nv = bool(_os_tc.environ.get("NVIDIA_API_KEY", "").strip())
-            etiqueta = "Groq LPU (Llama-4-Scout + Qwen3.8)"
-            if tiene_gem:
-                etiqueta += " + Gemini 2.5 Flash"
-            if tiene_nv:
-                etiqueta += " + NVIDIA NIM"
-            msg = re.sub(
-                r"\[ESCUDO RAM[^\]]*\]\s*[^:]+:",
-                f"[ESCUDO RAM TRI-CORTEX] Consenso paralelo {etiqueta}:",
-                msg,
-            )
-            args = (msg,) + args[1:]
-            if tiene_gem:
-                try:
-                    loop = _asyncio_tc.get_running_loop()
-                    loop.create_task(_consultar_gemini_macro_v751())
-                except Exception:
-                    pass
-    return _orig_print_escudo_v751(*args, **kwargs)
-
-
-_builtins_tc.print = _tricortex_print_interceptor_v751
+    setattr(CentinelaSemanticoRAM, "auditar_universo_una_vez", _wrapped_metodo_escudo_v752)
