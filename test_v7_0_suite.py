@@ -173,7 +173,7 @@ class _MockExchangeZeroRest:
 
 async def ejecutar_auditoria_v6_4_0() -> None:
     print("==================================================================")
-    print("🧪 INICIANDO SUITE DE PRUEBAS INTEGRADA: SPLITBRAIN-OMEGA V7.1.0 (EMPEROR'S TIME WIN-TO-WIN)")
+    print("🧪 INICIANDO SUITE DE PRUEBAS INTEGRADA: SPLITBRAIN-OMEGA V7.1.1 (EMPEROR'S TIME WIN-TO-WIN)")
     print("==================================================================")
 
     # 1. Verificación de compilación sintáctica de todos los módulos
@@ -523,7 +523,7 @@ async def ejecutar_auditoria_v6_4_0() -> None:
             ruta_temp.unlink()
 
     print("==================================================================")
-    print("🏆 TODAS LAS PRUEBAS DE INTEGRIDAD V7.1.0 EMPEROR'S TIME WIN-TO-WIN (15/15) SUPERADAS")
+    print("🏆 TODAS LAS PRUEBAS DE INTEGRIDAD V7.1.1 EMPEROR'S TIME WIN-TO-WIN (15/15) SUPERADAS")
     print("==================================================================")
 
 

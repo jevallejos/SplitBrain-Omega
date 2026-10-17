@@ -252,7 +252,7 @@ async def main():
     adquirir_bloqueo_instancia_unica()
     loop_name = type(asyncio.get_running_loop()).__name__
     print("==================================================================")
-    print("INICIANDO CEREBRO CENTRAL SPLITBRAIN-OMEGA (V7.1.0 - EMPEROR'S TIME WIN-TO-WIN)")
+    print("INICIANDO CEREBRO CENTRAL SPLITBRAIN-OMEGA (V7.1.1 - EMPEROR'S TIME PURE ALPHA 11)")
     print("==================================================================")
     print(f"[MAIN] Bloqueo de instancia física adquirido exitosamente (PID {os.getpid()} | Loop: {loop_name}).")
     print(f"[MAIN] Telemetría local con sellado de tiempo activa en: {LOG_FILE.name}")
@@ -326,7 +326,7 @@ async def main():
                 if _pref in _pool_limpio:
                     _pool_limpio.remove(_pref)
                 _pool_limpio.insert(0, _pref)
-        presas[:] = _pool_limpio[:15]
+        presas[:] = [s for s in _nucleo_v7 if s not in _indiv and s not in _vetados_v7]
         print(f"[MAIN] Presas activas: {', '.join(presas)}")
 
         await sniper.precalentar_apalancamiento_universo(exchange, presas)

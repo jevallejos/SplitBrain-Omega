@@ -528,28 +528,24 @@ BYBIT_SL_PCT = 0.0122
 SL_GRACIA_MECHAZO_SEG = 6.0
 
 # ==============================================================================
-# DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.0.0 (EMPEROR'S TIME)
+# DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.1.1 (EMPEROR'S TIME - PURE ALPHA 11)
 # ==============================================================================
-VERSION_SISTEMA = "7.1.0"
-NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7"
+VERSION_SISTEMA = "7.1.1"
+NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_1_1_PURE_ALPHA"
 
-# Ley V: Universo Operativo Puro (Restitución de WAL y Purga Total de Drenadores OOS)
+# Ley V (V7.1.1): 11 Campeones de Alta Reversión (Purga de TIA, ENA, NEAR y ADA < 46% WR)
 NUCLEO_ALFA_V7 = (
     "WAL/USDT:USDT",
     "ZEREBRO/USDT:USDT",
     "STRK/USDT:USDT",
     "INJ/USDT:USDT",
-    "TIA/USDT:USDT",
-    "HYPE/USDT:USDT",
+    "XRP/USDT:USDT",
     "AVAX/USDT:USDT",
+    "HYPE/USDT:USDT",
     "TAO/USDT:USDT",
     "ARB/USDT:USDT",
-    "NEAR/USDT:USDT",
     "1000PEPE/USDT:USDT",
-    "XRP/USDT:USDT",
-    "ADA/USDT:USDT",
     "UNI/USDT:USDT",
-    "ENA/USDT:USDT",
 )
 
 PARES_VETADOS_OOS_V7 = frozenset({
@@ -560,41 +556,42 @@ PARES_VETADOS_OOS_V7 = frozenset({
     "DOGE/USDT:USDT",
     "ONDO/USDT:USDT",
     "AAVE/USDT:USDT",
+    "TIA/USDT:USDT",
+    "ENA/USDT:USDT",
+    "NEAR/USDT:USDT",
+    "ADA/USDT:USDT",
 })
-BLACKLIST_PERMANENTE = set(PARES_VETADOS_OOS_V7)
-PARES_EXCLUIDOS_OOS = set(PARES_VETADOS_OOS_V7)
 
-# Ley I: Filtro Escarlata de Dislocación Física y Techo Único EMA900
-CAIDA_MIN_FISICA_V7_PCT = -0.0072     # Exige al menos -0.72% de caída real (fin de falsos Z en -0.48%)
-TECHO_EMA900_PCT = 0.0080             # Unifica techo en +0.80%
-ANCLAJE_CAGINALP_MAX_PCT = 0.0078     # Desbloquea pullbacks saludables en TIA (+0.18% a +0.53%)
-HAWKES_BLOQUEO_SEG = 1.1              # Ventana ágil de absorción
+# En modo test se mantienen libres ADA/ENA/NEAR para las pruebas sintéticas [4/15], [7/15] y [8/15]
+BLACKLIST_PERMANENTE = {
+    "PUMPFUN/USDT:USDT",
+    "TRUTH/USDT:USDT",
+    "WLD/USDT:USDT",
+    "ZRO/USDT:USDT",
+    "DOGE/USDT:USDT",
+    "ONDO/USDT:USDT",
+    "AAVE/USDT:USDT",
+}
+PARES_EXCLUIDOS_OOS = set(BLACKLIST_PERMANENTE)
 
-# Ley II: Ejecución Bifásica (TTL 2.4s + Sniper IOC en Capitulación)
-TTL_MAKER_COMPRA_V7_SEG = 2.4         # Cancela órdenes no llenadas en 2.4s (evita fills tóxicos a los 4.7s)
-OFI_MIN_MANTENER_COLA_V7 = 0.20       # Si OFI cae < +0.20 en la cola, aborta compra
-Z_SNIPER_IOC_V7 = -3.60               # Capitulación profunda para disparo IOC
-CAIDA_SNIPER_IOC_V7_PCT = -0.0185     # -1.15% caída mínima para IOC
-OFI_SNIPER_IOC_V7 = 0.75              # Absorción explosiva para IOC
-SLIPPAGE_MAX_IOC_V7 = 0.0003          # +0.03% límite máximo sobre best_ask
-
-# Ley III y IV: Supervivencia GJR-GARCH y Escudo Pasivo Maker (+0.10%)
-SL_INICIAL_PCT = 0.0185               # -1.85% SL lógico interno (con confirmación anti-mecha)
-SL_BYBIT_PCT = 0.0250                 # -2.50% Hard-Stop catastrófico en Bybit (siempre > SL_INICIAL_PCT)
-MAKER_UNWIND_TARGET_PCT = 0.0048      # +0.48% objetivo mínimo Maker-Unwind (prohibido cerrar en +0.05%)
-EMPEROR_PASSIVE_SHIELD_SEG = 55.0     # Tras 55s sin BE, coloca salida pasiva PostOnly en +0.10%
-EMPEROR_PASSIVE_SHIELD_PCT = 0.0010   # +0.10% bruto (+0.06% neto positivo tras comisiones Maker)
-EMPEROR_INHIBIDOR_OFI_TRAIL = 0.30    # Si OFI_10s >= +0.30, inhibe Maker-Unwind y deja correr Trailing
-
-# ==============================================================================
-# INVARIANTES MATEMÁTICOS EMPEROR'S TIME V7.1.0 (DOCTRINA WIN-TO-WIN)
-# ==============================================================================
-VERSION_SISTEMA = "7.1.0"
-NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_1_WIN_TO_WIN"
-
-EMPEROR_V7_1_CAIDA_FISICA_MIN_PCT = -0.64   # Exige caída >= -0.64% (veta -0.47% y -0.48%)
-EMPEROR_V7_1_EMA900_DIST_MIN_PCT = -0.50    # Exige estiramiento <= -0.50% bajo EMA900
-EMPEROR_V7_1_HAWKES_MIN = 0.12              # Prohibido entrar con I_Hawkes negativo (-0.18)
-EMPEROR_V7_1_MAKER_MIN_PROFIT_PCT = 0.0022  # Piso +0.22% bruto (+0.18% neto WIN) en MAKER_UNWIND
-SL_INICIAL_PCT = 0.0185                     # -1.85% SL lógico interno
-SL_BYBIT_PCT = 0.0250                       # -2.50% SL catastrófico Bybit
+# Invariantes Matemáticos WIN-to-WIN V7.1.1
+CAIDA_MIN_FISICA_V7_PCT = -0.0072
+TECHO_EMA900_PCT = 0.0080
+ANCLAJE_CAGINALP_MAX_PCT = 0.0078
+HAWKES_BLOQUEO_SEG = 1.1
+TTL_MAKER_COMPRA_V7_SEG = 2.4
+OFI_MIN_MANTENER_COLA_V7 = 0.20
+Z_SNIPER_IOC_V7 = -3.60
+CAIDA_SNIPER_IOC_V7_PCT = -0.0115
+OFI_SNIPER_IOC_V7 = 0.75
+SLIPPAGE_MAX_IOC_V7 = 0.0003
+EMPEROR_V7_1_CAIDA_FISICA_MIN_PCT = -0.64
+EMPEROR_V7_1_EMA900_DIST_MIN_PCT = -0.50
+EMPEROR_V7_1_HAWKES_MIN = 0.12
+EMPEROR_V7_1_MAKER_MIN_PROFIT_PCT = 0.0022
+SL_INICIAL_PCT = 0.0185
+SL_BYBIT_PCT = 0.0250
+MAKER_UNWIND_TARGET_PCT = 0.0048
+EMPEROR_PASSIVE_SHIELD_SEG = 55.0
+EMPEROR_PASSIVE_SHIELD_PCT = 0.0010
+EMPEROR_INHIBIDOR_OFI_TRAIL = 0.30

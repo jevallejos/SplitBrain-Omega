@@ -656,7 +656,7 @@ async def cazar_anomalia_ws(exchange, symbol: str) -> None:
                 )
                 if _m_rad:
                     _z_v, _dp_v, _ema_v, _ofi_v, _ih_v = (float(_m_rad.group(k)) for k in range(1, 6))
-                    if _dp_v > -0.64 or _ema_v > -0.50 or _ih_v < 0.12 or _z_v > -3.02:
+                    if symbol in getattr(cfg, 'PARES_VETADOS_OOS_V7', ()) or _dp_v > -0.64 or _ema_v > -0.50 or _ih_v < 0.12 or _z_v > -3.02:
                         continue
             print(
                 f"[RADAR] {symbol} Z={z_actual:.2f} ({caida_rel:.2%} | EMA900 {desv_ema_macro:+.2%}) "
