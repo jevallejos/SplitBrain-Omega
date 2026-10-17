@@ -833,9 +833,9 @@ def _wrapped_init_ge_v752(self, *args, **kwargs):
                     ent_p = float(getattr(pos_obj, "entry_price", getattr(pos_obj, "precio_entrada", 0.0)) or 0.0)
                     ts_ap = float(getattr(pos_obj, "timestamp_apertura", getattr(pos_obj, "start_time", _time_ge_v752.time())) or _time_ge_v752.time())
                     edad_actual = max(0.0, _time_ge_v752.time() - ts_ap)
-                    tau_min = _calcular_barrera_hjb_v74(pos_obj, edad_actual, 0.0) if "_calcular_barrera_hjb_v74" in globals() else 0.0022
+                    tau_min = 0.0022 if edad_actual >= 45.0 else (_calcular_barrera_hjb_v74(pos_obj, edad_actual, 0.0) if "_calcular_barrera_hjb_v74" in globals() else 0.0022)
                     piso_hjb = ent_p * (1.0 + max(0.0022, tau_min))
-                    if ent_p > 0.0 and float(price) < piso_hjb:
+                    if ent_p > 0.0 and (float(price) < piso_hjb or (edad_actual >= 50.0 and float(price) > ent_p * 1.0024)):
                         if hasattr(ex, "price_to_precision"):
                             price = float(ex.price_to_precision(symbol, piso_hjb))
                         else:

@@ -32,7 +32,7 @@ try:
         if isinstance(mensaje, str):
             mensaje = mensaje.replace(
                 "Motor SPLITBRAIN V6.4.0 (Zero-Zombie & Maker-First Unwind)",
-                "Motor SPLITBRAIN-Omega V7.5.3 (Emperor Time - Tri-Cortex Ensemble)",
+                "Motor SPLITBRAIN-Omega V7.5.4 (Emperor Time - Tri-Cortex Ensemble)",
             )
         return await _orig_enviar_tg_v7(mensaje, *args, **kwargs)
 except NameError:

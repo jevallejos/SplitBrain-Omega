@@ -660,6 +660,7 @@ async def cazar_anomalia_ws(exchange, symbol: str) -> None:
                 symbol in getattr(cfg, 'PARES_VETADOS_OOS_V7', ())
                 or __import__('time').time() < globals().get('_CUARENTENA_PUMP_V731', {}).get(symbol, 0.0)
                 or __import__('time').time() < globals().get('_CUARENTENA_VPIN_V731', {}).get(symbol, 0.0)
+                or __import__('time').time() < globals().get('_COOLDOWN_SIMBOLO_V754', {}).get(symbol, 0.0)
                 or (
                     symbol in getattr(cfg, 'PARES_HIGH_BETA_V7', ('ZEREBRO/USDT:USDT', 'WAL/USDT:USDT'))
                     and (
@@ -730,6 +731,7 @@ import time as _time_radar_v7
 
 _CUARENTENA_PUMP_V731 = {}
 _CUARENTENA_VPIN_V731 = {}
+_COOLDOWN_SIMBOLO_V754 = {}
 _orig_print_radar_v7 = getattr(_builtins_radar_v7, "_orig_print_root_v7", _builtins_radar_v7.print)
 _builtins_radar_v7._orig_print_root_v7 = _orig_print_radar_v7
 
@@ -743,6 +745,10 @@ def _emperor_radar_print_v7(*args, **kwargs):
             m_sym = _re_radar_v7.search(r"([A-Z0-9]+/USDT:USDT)", msg)
             if m_sym:
                 _CUARENTENA_PUMP_V731[m_sym.group(1)] = _time_radar_v7.time() + 300.0
+        if "[FRANCOTIRADOR]" in msg and "CIERRE " in msg:
+            m_c = _re_radar_v7.search(r"CIERRE\s+([A-Z0-9]+/USDT:USDT)", msg)
+            if m_c:
+                _COOLDOWN_SIMBOLO_V754[m_c.group(1)] = ahora + 180.0
         if "VPIN=" in msg:
             m_vp = _re_radar_v7.search(r"\(([A-Z0-9]+/USDT:USDT)\s+OFI=[^\)]+VPIN=([0-9.]+)\)", msg)
             if m_vp and float(m_vp.group(2)) >= 0.50:
