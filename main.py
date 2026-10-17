@@ -252,7 +252,7 @@ async def main():
     adquirir_bloqueo_instancia_unica()
     loop_name = type(asyncio.get_running_loop()).__name__
     print("==================================================================")
-    print("INICIANDO CEREBRO CENTRAL SPLITBRAIN-OMEGA (V7.0.0 - EMPEROR'S TIME)")
+    print("INICIANDO CEREBRO CENTRAL SPLITBRAIN-OMEGA (V7.1.0 - EMPEROR'S TIME WIN-TO-WIN)")
     print("==================================================================")
     print(f"[MAIN] Bloqueo de instancia física adquirido exitosamente (PID {os.getpid()} | Loop: {loop_name}).")
     print(f"[MAIN] Telemetría local con sellado de tiempo activa en: {LOG_FILE.name}")
@@ -312,7 +312,7 @@ async def main():
         print(
             f"[MAIN] Modo Paper: {cfg.MODO_PAPER} | Motor Salida: {cfg.MOTOR_SALIDA}+MAKER_PFQI | "
             f"OFI Min: {cfg.UMBRAL_OFI_TOXICO:+.2f} | Hold Máx: {cfg.TIEMPO_MAX_HOLD_SEG}s "
-            f"(Emperor v7.0: Cosecha +0.48% | Escudo Maker +0.18% | Cero OFI_EXIT) | "
+            f"(Emperor v7.1 WIN-to-WIN: Cosecha +0.48% | Piso Maker +0.22% | Cero OFI_EXIT) | "
             f"BE: +{cfg.BE_ACTIVACION_PCT:.2%} | Trail: +{cfg.TRAIL_ACTIVACION_PCT:.2%}"
         )
         print(f"[MAIN] Radar fijado en {len(presas)} pares cripto-nativos Tier-1 viables.")

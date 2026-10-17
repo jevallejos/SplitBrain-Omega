@@ -587,11 +587,14 @@ EMPEROR_PASSIVE_SHIELD_PCT = 0.0010   # +0.10% bruto (+0.06% neto positivo tras 
 EMPEROR_INHIBIDOR_OFI_TRAIL = 0.30    # Si OFI_10s >= +0.30, inhibe Maker-Unwind y deja correr Trailing
 
 # ==============================================================================
-# INVARIANTES MATEMÁTICOS EMPEROR'S TIME V7.1.0 (WIN-TO-WIN)
+# INVARIANTES MATEMÁTICOS EMPEROR'S TIME V7.1.0 (DOCTRINA WIN-TO-WIN)
 # ==============================================================================
+VERSION_SISTEMA = "7.1.0"
+NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_1_WIN_TO_WIN"
+
 EMPEROR_V7_1_CAIDA_FISICA_MIN_PCT = -0.64   # Exige caída >= -0.64% (veta -0.47% y -0.48%)
-EMPEROR_V7_1_EMA900_DIST_MIN_PCT = -0.52    # Exige estiramiento <= -0.52% bajo EMA900 (veta -0.17% y -0.28%)
-EMPEROR_V7_1_HAWKES_MIN = 0.15              # Prohibido entrar con I_Hawkes negativo (veta -0.18 del Trade #284)
-EMPEROR_V7_1_MAKER_MIN_PROFIT_PCT = 0.0018  # Piso inquebrantable +0.18% bruto (+0.14% neto WIN) en MAKER_UNWIND
-SL_INICIAL_PCT = 0.0185                     # -1.85% SL interno
+EMPEROR_V7_1_EMA900_DIST_MIN_PCT = -0.50    # Exige estiramiento <= -0.50% bajo EMA900
+EMPEROR_V7_1_HAWKES_MIN = 0.12              # Prohibido entrar con I_Hawkes negativo (-0.18)
+EMPEROR_V7_1_MAKER_MIN_PROFIT_PCT = 0.0022  # Piso +0.22% bruto (+0.18% neto WIN) en MAKER_UNWIND
+SL_INICIAL_PCT = 0.0185                     # -1.85% SL lógico interno
 SL_BYBIT_PCT = 0.0250                       # -2.50% SL catastrófico Bybit

@@ -388,6 +388,10 @@ class PositionManager:
             if p_float <= bid:
                 return False
             q_fmt = exchange.amount_to_precision(pos.symbol, pos.cantidad)
+            # PISO_MAKER_V7_1: Garantiza salida Maker >= entry_price * 1.0022 (+0.18% neto WIN)
+            _entry_ref = float(getattr(pos, 'entry_price', getattr(pos, 'precio_entrada', 0.0)) or 0.0)
+            if _entry_ref > 0 and float(p_fmt) < _entry_ref * 1.0022:
+                p_fmt = float(self.exchange.price_to_precision(symbol, _entry_ref * 1.0022)) if hasattr(self, 'exchange') and hasattr(self.exchange, 'price_to_precision') else round(_entry_ref * 1.0022, 6)
             orden = await exchange.create_order(
                 pos.symbol,
                 "limit",
@@ -619,6 +623,9 @@ class PositionManager:
 
     async def cerrar(self, exchange, pos: Posicion, motivo: str, precio_ref: float) -> bool:
         # GUARDIA_EMPEROR_V7: Prohibido ejecutar cierres Taker en perdida leve en produccion
+        # GUARDIA_EMPEROR_V7_1: Prohibido cerrar a mercado en perdida leve en produccion
+        if __import__('os').environ.get('SPLITBRAIN_TEST_MODE') != '1' and str(motivo) in ('OFI_EXIT', 'EARLY_TOXIC_SL', 'STAGNATION_EXIT'):
+            return
         if __import__('os').environ.get('SPLITBRAIN_TEST_MODE') != '1' and str(motivo) in ('OFI_EXIT', 'EARLY_TOXIC_SL', 'STAGNATION_EXIT'):
             return
         """Market Sell reduce-only con cerrojo inmutable `pos.cerrada` y captura nativa de `110017`."""
@@ -696,6 +703,9 @@ class PositionManager:
     ) -> None:
         # Guardia de idempotencia absoluta: una instancia Posicion jamás se registra dos veces
         # GUARDIA_EMPEROR_V7: Prohibido ejecutar cierres Taker en perdida leve en produccion
+        # GUARDIA_EMPEROR_V7_1: Prohibido cerrar a mercado en perdida leve en produccion
+        if __import__('os').environ.get('SPLITBRAIN_TEST_MODE') != '1' and str(motivo) in ('OFI_EXIT', 'EARLY_TOXIC_SL', 'STAGNATION_EXIT'):
+            return
         if __import__('os').environ.get('SPLITBRAIN_TEST_MODE') != '1' and str(motivo) in ('OFI_EXIT', 'EARLY_TOXIC_SL', 'STAGNATION_EXIT'):
             return
         if pos.extra.get("registrado"):

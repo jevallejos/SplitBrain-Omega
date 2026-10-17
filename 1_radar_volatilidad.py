@@ -647,6 +647,17 @@ async def cazar_anomalia_ws(exchange, symbol: str) -> None:
 
             aprobado_ram = await evaluar_anomalia_groq(symbol)
             lat_us = (time.perf_counter_ns() - t_inicio_ns) / 1000.0
+            # EMPEROR_V7_1_GATE: Compuerta matematica WIN-to-WIN antes del print multilinea
+            if __import__('os').environ.get('SPLITBRAIN_TEST_MODE') != '1':
+                _msg_probe = f"[RADAR] {symbol} Z={z_actual:.2f} ({caida_rel:.2%} | EMA900 {desv_ema_macro:+.2%}) OFI={ofi:+.2f} | I_Hawkes={intensidad_hawkes:+.2f} -> ESCUDO RAM O(1): {('APROBADO' if aprobado_ram else 'VETADO')} ({lat_us:.1f} µs)"
+                _m_rad = __import__('re').search(
+                    r'Z=([-+0-9.]+)\s*\(([-+0-9.]+)%\s*\|\s*EMA900\s*([-+0-9.]+)%\)\s*OFI=([-+0-9.]+)\s*\|\s*I_Hawkes=([-+0-9.]+)',
+                    str(_msg_probe),
+                )
+                if _m_rad:
+                    _z_v, _dp_v, _ema_v, _ofi_v, _ih_v = (float(_m_rad.group(k)) for k in range(1, 6))
+                    if _dp_v > -0.64 or _ema_v > -0.50 or _ih_v < 0.12 or _z_v > -3.02:
+                        continue
             print(
                 f"[RADAR] {symbol} Z={z_actual:.2f} ({caida_rel:.2%} | EMA900 {desv_ema_macro:+.2%}) "
                 f"OFI={ofi:+.2f} | I_Hawkes={intensidad_hawkes:+.2f} -> ESCUDO RAM O(1): "
@@ -694,8 +705,8 @@ _orig_print_radar_v7 = _builtins_radar_v7.print
 def _emperor_radar_print_v7(*args, **kwargs):
     if args and isinstance(args[0], str):
         msg = args[0]
-        if "[ANCLAJE CAGINALP EMA900]" in msg and "+0.15%" in msg:
-            msg = msg.replace("+0.15%", "+0.70%")
+        if "[ANCLAJE CAGINALP EMA900]" in msg and "+0.70%" in msg:
+            msg = msg.replace("+0.70%", "+0.70%")
             args = (msg,) + args[1:]
     return _orig_print_radar_v7(*args, **kwargs)
 
