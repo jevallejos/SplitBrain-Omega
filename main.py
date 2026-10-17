@@ -384,3 +384,40 @@ if __name__ == "__main__":
             _log_handle.close()
         except Exception:
             pass
+
+# ==============================================================================
+# LOGGER_HISTORICO_PERPETUO_V755: ESCRITURA APPEND EN bot_hft_h.log (0% TESTS)
+# ==============================================================================
+import builtins as _b_hist_v755
+import os as _os_hist_v755
+import pathlib as _pathlib_hist_v755
+import re as _re_hist_v755
+from datetime import datetime as _dt_hist_v755, timezone as _tz_hist_v755, timedelta as _td_hist_v755
+
+_RUTA_HIST_LOG_V755 = _pathlib_hist_v755.Path(__file__).resolve().parent / "bot_hft_h.log"
+_PATRON_TEST_V755 = _re_hist_v755.compile(
+    r"(\[(?:1|2|3|4|5|6|7|8|9|10|11|12|13|14|15)/15\]|SUITE DE PRUEBAS|PRUEBAS DE INTEGRIDAD|"
+    r"zero_rest_order_1|\.test_stats_v6|\.splitbrain_test\.lock|14400s)"
+)
+_orig_print_hist_v755 = _b_hist_v755.print
+
+def _print_con_historial_v755(*args, **kwargs):
+    res = _orig_print_hist_v755(*args, **kwargs)
+    if _os_hist_v755.environ.get("SPLITBRAIN_TEST_MODE") != "1" and args:
+        try:
+            texto = " ".join(str(a) for a in args)
+            if not _PATRON_TEST_V755.search(texto):
+                if not texto.startswith("[202"):
+                    now_utc = _dt_hist_v755.now(_tz_hist_v755.utc)
+                    now_cl = now_utc - _td_hist_v755(hours=3)
+                    sello = f"[{now_cl.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} CL | {now_utc.strftime('%H:%M:%S')} UTC] "
+                    linea_out = sello + texto + "\n"
+                else:
+                    linea_out = texto + ("\n" if not texto.endswith("\n") else "")
+                with open(_RUTA_HIST_LOG_V755, "a", encoding="utf-8") as fh:
+                    fh.write(linea_out)
+        except Exception:
+            pass
+    return res
+
+_b_hist_v755.print = _print_con_historial_v755

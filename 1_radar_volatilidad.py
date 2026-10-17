@@ -748,7 +748,7 @@ def _emperor_radar_print_v7(*args, **kwargs):
         if "[FRANCOTIRADOR]" in msg and "CIERRE " in msg:
             m_c = _re_radar_v7.search(r"CIERRE\s+([A-Z0-9]+/USDT:USDT)", msg)
             if m_c:
-                _COOLDOWN_SIMBOLO_V754[m_c.group(1)] = ahora + 180.0
+                _COOLDOWN_SIMBOLO_V754[m_c.group(1)] = _time_radar_v7.time() + 180.0
         if "VPIN=" in msg:
             m_vp = _re_radar_v7.search(r"\(([A-Z0-9]+/USDT:USDT)\s+OFI=[^\)]+VPIN=([0-9.]+)\)", msg)
             if m_vp and float(m_vp.group(2)) >= 0.50:
