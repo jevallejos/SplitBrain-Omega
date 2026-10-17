@@ -312,7 +312,7 @@ async def main():
         print(
             f"[MAIN] Modo Paper: {cfg.MODO_PAPER} | Motor Salida: {cfg.MOTOR_SALIDA}+MAKER_PFQI | "
             f"OFI Min: {cfg.UMBRAL_OFI_TOXICO:+.2f} | Hold Máx: {cfg.TIEMPO_MAX_HOLD_SEG}s "
-            f"(Cortes: {cfg.EARLY_TOXIC_HOLD_SEG}s/{cfg.STAGNATION_HOLD_SEG}s) | "
+            f"(Emperor v7.0: Cosecha +0.48% | Escudo Maker +0.18% | Cero OFI_EXIT) | "
             f"BE: +{cfg.BE_ACTIVACION_PCT:.2%} | Trail: +{cfg.TRAIL_ACTIVACION_PCT:.2%}"
         )
         print(f"[MAIN] Radar fijado en {len(presas)} pares cripto-nativos Tier-1 viables.")

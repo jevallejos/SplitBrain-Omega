@@ -227,7 +227,7 @@ def _obtener_sl_bybit_pct() -> float:
     """Devuelve el porcentaje de Stop-Loss catastrófico alojado en Bybit (~1.65%),
     garantizando que jamás sea más estrecho que el SL interno (~1.15%)[cite: 64].
     """
-    sl_int = min(float(getattr(cfg, "SL_INTERNO_PCT", getattr(cfg, "SL_INICIAL_PCT", 0.0115))), 0.0125)
+    sl_int = min(float(getattr(cfg, "SL_INTERNO_PCT", getattr(cfg, "SL_INICIAL_PCT", 0.0185))), 0.0125)
     sl_exc = float(getattr(cfg, "SL_BYBIT_PCT", getattr(cfg, "STOP_LOSS_BYBIT_PCT", getattr(cfg, "SL_PCT", 0.0165))))
     return max(sl_exc, sl_int + 0.0040, 0.0155)
 

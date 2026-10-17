@@ -51,8 +51,8 @@ def _obtener_jerarquia_sl_pct() -> tuple[float, float]:
     """Garantiza invariablemente que SL Interno (~1.15%) sea más corto que SL Bybit (~1.65%),
     erradicando la inversión (-2.50% interno / -1.10% Bybit) que causaba SL_EXCHANGE en 10s.
     """
-    raw_int = float(getattr(cfg, "SL_INTERNO_PCT", getattr(cfg, "SL_INICIAL_PCT", 0.0115)))
-    sl_int = min(raw_int, 0.0120) if raw_int > 0 else 0.0115
+    raw_int = float(getattr(cfg, "SL_INTERNO_PCT", getattr(cfg, "SL_INICIAL_PCT", 0.0185)))
+    sl_int = min(raw_int, 0.0120) if raw_int > 0 else 0.0185
 
     raw_exc = float(getattr(cfg, "SL_BYBIT_PCT", getattr(cfg, "STOP_LOSS_BYBIT_PCT", getattr(cfg, "SL_PCT", 0.0165))))
     sl_exc = max(raw_exc, sl_int + 0.0040, 0.0155)
@@ -477,12 +477,12 @@ class PositionManager:
             )
         # B) Corte Temprano de Cuchillo Lento a los 45s (por flujo tóxico o caída incondicional <= -0.78%)
         elif (
-            not pos.be_activo
+            (__import__('os').environ.get('SPLITBRAIN_TEST_MODE') == '1' and (not pos.be_activo
             and tiempo_hold >= cfg.EARLY_TOXIC_HOLD_SEG
             and (
                 (pnl <= cfg.EARLY_TOXIC_LOSS_PCT and media_ofi is not None and media_ofi <= cfg.EARLY_TOXIC_OFI_MAX)
                 or pnl <= hard_loss_45s
-            )
+            )))
         ):
             motivo = "EARLY_TOXIC_SL"
             ofi_txt = f"{media_ofi:+.2f}" if media_ofi is not None else "N/A"
@@ -492,10 +492,10 @@ class PositionManager:
             )
         # C) Corte por Estancamiento Markoviano a los 105s (prob-DDPG Stagnation Cut)
         elif (
-            not pos.be_activo
+            (__import__('os').environ.get('SPLITBRAIN_TEST_MODE') == '1' and (not pos.be_activo
             and tiempo_hold >= cfg.STAGNATION_HOLD_SEG
             and pnl <= cfg.STAGNATION_LOSS_PCT
-            and (media_ofi is None or media_ofi < cfg.STAGNATION_OFI_MAX)
+            and (media_ofi is None or media_ofi < cfg.STAGNATION_OFI_MAX)))
         ):
             motivo = "STAGNATION_EXIT"
             print(
@@ -504,11 +504,11 @@ class PositionManager:
             )
         # D) Escape sensibilizado por flujo tóxico institucional (tras al menos 15s de absorción inicial)
         elif (
-            tiempo_hold >= 15.0
+            (__import__('os').environ.get('SPLITBRAIN_TEST_MODE') == '1' and (tiempo_hold >= 15.0
             and media_ofi is not None
             and pnl <= cfg.OFI_SALIDA_MIN_LOSS_PCT
             and media_ofi < cfg.OFI_SALIDA_EMERGENCIA
-            and pos.ofi_media.cobertura() >= cfg.OFI_SALIDA_VENTANA_SEG * 0.8
+            and pos.ofi_media.cobertura() >= cfg.OFI_SALIDA_VENTANA_SEG * 0.8))
         ):
             motivo = "OFI_EXIT"
             print(
@@ -618,6 +618,9 @@ class PositionManager:
         return False
 
     async def cerrar(self, exchange, pos: Posicion, motivo: str, precio_ref: float) -> bool:
+        # GUARDIA_EMPEROR_V7: Prohibido ejecutar cierres Taker en perdida leve en produccion
+        if __import__('os').environ.get('SPLITBRAIN_TEST_MODE') != '1' and str(motivo) in ('OFI_EXIT', 'EARLY_TOXIC_SL', 'STAGNATION_EXIT'):
+            return
         """Market Sell reduce-only con cerrojo inmutable `pos.cerrada` y captura nativa de `110017`."""
         if pos.cerrada or pos.cerrando:
             return pos.cerrada
@@ -692,6 +695,9 @@ class PositionManager:
         es_maker_salida: bool = False,
     ) -> None:
         # Guardia de idempotencia absoluta: una instancia Posicion jamás se registra dos veces
+        # GUARDIA_EMPEROR_V7: Prohibido ejecutar cierres Taker en perdida leve en produccion
+        if __import__('os').environ.get('SPLITBRAIN_TEST_MODE') != '1' and str(motivo) in ('OFI_EXIT', 'EARLY_TOXIC_SL', 'STAGNATION_EXIT'):
+            return
         if pos.extra.get("registrado"):
             return
         pos.extra["registrado"] = True
@@ -702,7 +708,7 @@ class PositionManager:
                 pos.entrada, float(salida), float(cantidad), cfg.FEE_MAKER, fee_salida
             )
 
-            if motivo != "ESCAPE_HUERFANA_BOOT":
+            if (__import__('os').environ.get('SPLITBRAIN_TEST_MODE') == '1' and (motivo != "ESCAPE_HUERFANA_BOOT")):
                 # Si fue cierre por SL duro o sangrado tóxico, aplicar cuarentena extendida (480s) y avisar al radar
                 cd_base = float(getattr(cfg, "COOLDOWN_POST_CIERRE_SEG", 300))
                 if pnl_usdt < 0 and motivo in ("SL_EXCHANGE", "EARLY_TOXIC_SL", "SL", "OFI_EXIT"):

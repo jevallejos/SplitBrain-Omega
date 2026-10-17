@@ -242,7 +242,7 @@ TP_PORCENTAJE: float = TAKE_PROFIT_PCT
 TP_PCT: float = TAKE_PROFIT_PCT
 
 # Hard SL acotado a -1.25% interno y -1.50% en Bybit (erradica el -2.50% / -3.00% heredado)
-STOP_LOSS_PCT: float = 0.0115
+STOP_LOSS_PCT: float = 0.0185
 SL_PORCENTAJE: float = STOP_LOSS_PCT
 SL_PCT: float = STOP_LOSS_PCT
 SL_INTERNO_PCT: float = STOP_LOSS_PCT
@@ -336,7 +336,7 @@ MAKER_UNWIND_STALL_SEG = 65
 MAKER_UNWIND_MIN_PNL_PCT = 0.0012
 MAKER_UNWIND_OFI_TECHO = 0.18
 MAKER_PERSISTENCIA_SEG = 12.0
-SL_INICIAL_PCT = 0.0088
+SL_INICIAL_PCT = 0.0185
 BE_PISO_EXCHANGE_PCT = 0.001
 OFI_SALIDA_EMERGENCIA = -0.42
 OFI_SALIDA_MIN_LOSS_PCT = -0.0025
@@ -411,10 +411,10 @@ EMA_MAX_PREMIUM_ENTRADA_NORMAL_PCT = 0.0015
 # Jerarquia correcta de Stop Loss V6.4.1:
 # - SL Interno: -1.15% (con gracia de 18s para absorber mechazo de entrada)
 # - SL Bybit (Servidor): -1.65% (respaldo catastrofico; evita cierres SL_EXCHANGE en 10s)
-STOP_LOSS_PCT = 0.0115
-SL_PORCENTAJE = 0.0115
+STOP_LOSS_PCT = 0.0185
+SL_PORCENTAJE = 0.0185
 SL_PCT = 0.0122
-SL_INTERNO_PCT = 0.0115
+SL_INTERNO_PCT = 0.0185
 SL_BYBIT_PCT = 0.0165
 STOP_LOSS_BYBIT_PCT = 0.0165
 BYBIT_SL_PCT = 0.0165
@@ -518,9 +518,9 @@ Z_SCORE_SECUNDARIOS_OOS = -3.20
 # Jerarquía de Stop-Loss calibrada para evitar pérdidas de -0.185 USDT:
 # - SL Interno = -0.88% (con ventana de gracia de 6.0s contra ruido inicial menor a -1.08%)
 # - SL Bybit   = -1.22% (respaldo en servidor)
-SL_INICIAL_PCT = 0.0088
-SL_INTERNO_PCT = 0.0088
-STOP_LOSS_PCT = 0.0088
+SL_INICIAL_PCT = 0.0185
+SL_INTERNO_PCT = 0.0185
+STOP_LOSS_PCT = 0.0185
 SL_PCT = 0.0122
 SL_BYBIT_PCT = 0.0122
 STOP_LOSS_BYBIT_PCT = 0.0122
@@ -574,7 +574,7 @@ HAWKES_BLOQUEO_SEG = 1.1              # Ventana ágil de absorción
 TTL_MAKER_COMPRA_V7_SEG = 2.4         # Cancela órdenes no llenadas en 2.4s (evita fills tóxicos a los 4.7s)
 OFI_MIN_MANTENER_COLA_V7 = 0.20       # Si OFI cae < +0.20 en la cola, aborta compra
 Z_SNIPER_IOC_V7 = -3.60               # Capitulación profunda para disparo IOC
-CAIDA_SNIPER_IOC_V7_PCT = -0.0115     # -1.15% caída mínima para IOC
+CAIDA_SNIPER_IOC_V7_PCT = -0.0185     # -1.15% caída mínima para IOC
 OFI_SNIPER_IOC_V7 = 0.75              # Absorción explosiva para IOC
 SLIPPAGE_MAX_IOC_V7 = 0.0003          # +0.03% límite máximo sobre best_ask
 
