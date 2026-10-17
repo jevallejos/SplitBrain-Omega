@@ -530,7 +530,7 @@ SL_GRACIA_MECHAZO_SEG = 6.0
 # ==============================================================================
 # DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.0.0 (EMPEROR'S TIME)
 # ==============================================================================
-VERSION_SISTEMA = "7.0.0"
+VERSION_SISTEMA = "7.1.0"
 NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7"
 
 # Ley V: Universo Operativo Puro (Restitución de WAL y Purga Total de Drenadores OOS)
@@ -585,3 +585,13 @@ MAKER_UNWIND_TARGET_PCT = 0.0048      # +0.48% objetivo mínimo Maker-Unwind (pr
 EMPEROR_PASSIVE_SHIELD_SEG = 55.0     # Tras 55s sin BE, coloca salida pasiva PostOnly en +0.10%
 EMPEROR_PASSIVE_SHIELD_PCT = 0.0010   # +0.10% bruto (+0.06% neto positivo tras comisiones Maker)
 EMPEROR_INHIBIDOR_OFI_TRAIL = 0.30    # Si OFI_10s >= +0.30, inhibe Maker-Unwind y deja correr Trailing
+
+# ==============================================================================
+# INVARIANTES MATEMÁTICOS EMPEROR'S TIME V7.1.0 (WIN-TO-WIN)
+# ==============================================================================
+EMPEROR_V7_1_CAIDA_FISICA_MIN_PCT = -0.64   # Exige caída >= -0.64% (veta -0.47% y -0.48%)
+EMPEROR_V7_1_EMA900_DIST_MIN_PCT = -0.52    # Exige estiramiento <= -0.52% bajo EMA900 (veta -0.17% y -0.28%)
+EMPEROR_V7_1_HAWKES_MIN = 0.15              # Prohibido entrar con I_Hawkes negativo (veta -0.18 del Trade #284)
+EMPEROR_V7_1_MAKER_MIN_PROFIT_PCT = 0.0018  # Piso inquebrantable +0.18% bruto (+0.14% neto WIN) en MAKER_UNWIND
+SL_INICIAL_PCT = 0.0185                     # -1.85% SL interno
+SL_BYBIT_PCT = 0.0250                       # -2.50% SL catastrófico Bybit
