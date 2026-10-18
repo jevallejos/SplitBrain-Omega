@@ -423,47 +423,89 @@ def _print_con_historial_v755(*args, **kwargs):
 _b_hist_v755.print = _print_con_historial_v755
 
 # ==============================================================================
-# PUENTE_TELEGRAM_CIERRE_ROJO_V773: ENVÍA 🔴 [CIERRE <MOTIVO>] EN PÉRDIDAS REALES
-# Formato idéntico al de ganancias:
-# 🔴 [CIERRE SL] ZEREBRO/USDT:USDT
-# -1.40 % (-0.2551 USDT) en 83s
+# PUENTE_TELEGRAM_CIERRE_ROJO_V773: APAREAMIENTO 1:1 (APERTURA AL LLENAR + CIERRE 🟩/🔴)
 # ==============================================================================
 import asyncio as _asyncio_tg_v773
 import aiohttp as _aiohttp_tg_v773
+import dotenv as _dotenv_tg_v773
 
+_REGEX_ORDEN_COLOCADA_V773 = _re_hist_v755.compile(
+    r"\[FRANCOTIRADOR\]\s+Orden\s+([a-fA-F0-9-]+)\s+en\s+([A-Z0-9]+/USDT:USDT):\s+[0-9.]+\s+@\s+([0-9.]+)"
+)
+_REGEX_POSICION_ACTIVA_V773 = _re_hist_v755.compile(
+    r"\[(?:FRANCOTIRADOR|SHORT-SNIPER)\]\s+🎯\s+Posición(?:\s+SHORT)?\s+activa\s+en\s+([A-Z0-9]+/USDT:USDT):\s+[0-9.]+\s+@\s+([0-9.]+)"
+)
+_REGEX_NO_LLENADA_V773 = _re_hist_v755.compile(
+    r"\[(?:FRANCOTIRADOR|SHORT-SNIPER)\].*?en\s+([A-Z0-9]+/USDT:USDT)\s+no\s+llenada"
+)
 _REGEX_CIERRE_LOG_V773 = _re_hist_v755.compile(
     r"\[(?:FRANCOTIRADOR|SHORT-SNIPER)\]\s*(🟩|🔴)\s*CIERRE(?:\s+SHORT)?\s+([A-Z0-9]+/USDT:USDT)\s+\[([^\]]+)\]\s+[^|]+\|\s*([-+0-9.]+\s*%\s*\([-+0-9.]+\s*USDT\)\s*en\s*[0-9.]+s)"
 )
 
 
-async def _despachar_cierre_telegram_v773(icono: str, symbol: str, motivo: str, detalle_pnl: str) -> None:
+async def _enviar_texto_telegram_directo_v773(texto_tg: str, confirmado_fill: bool = False) -> None:
     if _os_hist_v755.environ.get("SPLITBRAIN_TEST_MODE") == "1":
         return
-    if motivo == "ESCAPE_HUERFANA_BOOT" or "14400s" in detalle_pnl:
-        return
-    # Esperar 0.35s por si 5_gestor_posiciones.py ya lo envio por su cuenta (como hace con los verdes)
-    await _asyncio_tg_v773.sleep(0.35)
-    texto_tg = f"{icono} [CIERRE {motivo}] {symbol}\n{detalle_pnl.strip()}"
-    cache = getattr(_b_hist_v755, "_TG_SENT_CACHE_V773", {})
-    ahora = __import__("time").time()
-    if ahora - cache.get(texto_tg, 0.0) < 12.0:
-        return
-    cache[texto_tg] = ahora
-    _b_hist_v755._TG_SENT_CACHE_V773 = cache
+    # 1. Validar contra el filtro y caché de desduplicación (12s por símbolo y tipo OPEN/CLOSE)
+    fn_filtro = getattr(_b_hist_v755, "_procesar_filtro_telegram_v773", None)
+    if fn_filtro is not None:
+        if not fn_filtro(texto_tg, confirmado_fill=confirmado_fill):
+            return
+    else:
+        cache = getattr(_b_hist_v755, "_TG_SENT_CACHE_V773", {})
+        ahora = __import__("time").time()
+        m_s = _re_hist_v755.search(r"([A-Z0-9]+/USDT:USDT)", texto_tg)
+        sym_k = m_s.group(1) if m_s else texto_tg
+        tipo_k = f"OPEN:{sym_k}" if "ALERTA VERDE" in texto_tg else f"CLOSE:{sym_k}"
+        if ahora - cache.get(tipo_k, 0.0) < 12.0:
+            return
+        cache[tipo_k] = ahora
+        _b_hist_v755._TG_SENT_CACHE_V773 = cache
 
-    token = _os_hist_v755.environ.get("TELEGRAM_BOT_TOKEN", _os_hist_v755.environ.get("TELEGRAM_TOKEN", "")).strip()
-    chat_id = _os_hist_v755.environ.get("TELEGRAM_CHAT_ID", "").strip()
+    # 2. Intentar enviar con la instancia viva de 4_telemetria_telegram si está registrada
+    inst_tg = getattr(_b_hist_v755, "_TG_INST_V773", None)
+    orig_send = getattr(_b_hist_v755, "_TG_ORIG_SEND_V773", None)
+    if inst_tg is not None and orig_send is not None:
+        try:
+            await orig_send(inst_tg, texto_tg)
+            return
+        except Exception:
+            pass
+
+    # 3. Respaldo directo HTTP hacia api.telegram.org leyendo .env
+    try:
+        _dotenv_tg_v773.load_dotenv(_pathlib_hist_v755.Path(__file__).resolve().parent / ".env")
+    except Exception:
+        pass
+    token = (
+        _os_hist_v755.environ.get("TELEGRAM_BOT_TOKEN")
+        or _os_hist_v755.environ.get("TELEGRAM_TOKEN")
+        or ""
+    ).strip()
+    chat_id = (
+        _os_hist_v755.environ.get("TELEGRAM_CHAT_ID")
+        or _os_hist_v755.environ.get("CHAT_ID")
+        or ""
+    ).strip()
     if not token or not chat_id:
         return
     url = f"https://api.telegram.org/bot{token}/sendMessage"
-    payload = {"chat_id": chat_id, "text": texto_tg}
     try:
         timeout = _aiohttp_tg_v773.ClientTimeout(total=5.0)
         async with _aiohttp_tg_v773.ClientSession(timeout=timeout) as session:
-            async with session.post(url, json=payload) as _:
+            async with session.post(url, json={"chat_id": chat_id, "text": texto_tg}) as _:
                 pass
     except Exception:
         pass
+
+
+async def _despachar_cierre_unificado_v773(icono: str, symbol: str, motivo: str, detalle_pnl: str) -> None:
+    if motivo == "ESCAPE_HUERFANA_BOOT" or "14400s" in detalle_pnl:
+        return
+    # Esperar 0.35s por si 5_gestor_posiciones.py ya lo envió
+    await _asyncio_tg_v773.sleep(0.35)
+    texto_tg = f"{icono} [CIERRE {motivo}] {symbol}\n{detalle_pnl.strip()}"
+    await _enviar_texto_telegram_directo_v773(texto_tg, confirmado_fill=True)
 
 
 _prev_print_v755 = _b_hist_v755.print
@@ -473,11 +515,43 @@ def _print_con_historial_y_tg_v773(*args, **kwargs):
     if _os_hist_v755.environ.get("SPLITBRAIN_TEST_MODE") != "1" and args:
         try:
             texto = " ".join(str(a) for a in args)
-            m_c = _REGEX_CIERRE_LOG_V773.search(texto)
-            if m_c and m_c.group(1) == "🔴":
-                icono, sym, mot, det = m_c.group(1), m_c.group(2), m_c.group(3), m_c.group(4)
+
+            # A. Capturar ID y precio cuando se coloca la orden límite
+            m_ord = _REGEX_ORDEN_COLOCADA_V773.search(texto)
+            if m_ord:
+                oid, sym_o, precio_o = m_ord.group(1), m_ord.group(2), m_ord.group(3)
+                if not hasattr(_b_hist_v755, "_TG_LAST_OID_V773"):
+                    _b_hist_v755._TG_LAST_OID_V773 = {}
+                _b_hist_v755._TG_LAST_OID_V773[sym_o] = (oid, precio_o)
+
+            # B. Si la orden NO se llenó en 10s, limpiar buffer pendiente sin enviar nada a Telegram
+            m_nl = _REGEX_NO_LLENADA_V773.search(texto)
+            if m_nl:
+                sym_nl = m_nl.group(1)
+                getattr(_b_hist_v755, "_TG_PENDING_OPEN_V773", {}).pop(sym_nl, None)
+
+            # C. Cuando la orden SÍ se llena ('🎯 Posición activa'), enviar la ALERTA VERDE de apertura a Telegram
+            m_act = _REGEX_POSICION_ACTIVA_V773.search(texto)
+            if m_act:
+                sym_a, precio_a = m_act.group(1), m_act.group(2)
+                pending = getattr(_b_hist_v755, "_TG_PENDING_OPEN_V773", {}).pop(sym_a, None)
+                if not pending:
+                    oid_a, _ = getattr(_b_hist_v755, "_TG_LAST_OID_V773", {}).get(sym_a, ("N/A", precio_a))
+                    pending = (
+                        f"🟩 ALERTA VERDE (PROD):\n"
+                        f"Orden Limit PostOnly en {sym_a}\n"
+                        f"Precio: {precio_a}\n"
+                        f"ID: {oid_a}"
+                    )
                 loop = _asyncio_tg_v773.get_running_loop()
-                loop.create_task(_despachar_cierre_telegram_v773(icono, sym, mot, det))
+                loop.create_task(_enviar_texto_telegram_directo_v773(pending, confirmado_fill=True))
+
+            # D. Cuando la posición se cierra (en ganancia 🟩 o pérdida 🔴), enviar el cierre a Telegram
+            m_c = _REGEX_CIERRE_LOG_V773.search(texto)
+            if m_c:
+                icono, sym_c, mot_c, det_c = m_c.group(1), m_c.group(2), m_c.group(3), m_c.group(4)
+                loop = _asyncio_tg_v773.get_running_loop()
+                loop.create_task(_despachar_cierre_unificado_v773(icono, sym_c, mot_c, det_c))
         except Exception:
             pass
     return res
