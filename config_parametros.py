@@ -530,8 +530,8 @@ SL_GRACIA_MECHAZO_SEG = 6.0
 # ==============================================================================
 # DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.5.0 (EMPEROR TIME - BIDIRECTIONAL PREDATOR)
 # ==============================================================================
-VERSION_SISTEMA = "7.6.0"
-NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_6_0_GODSPEED"
+VERSION_SISTEMA = "7.7.0"
+NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_7_0_GODSPEED_QUANTUM"
 
 NUCLEO_ALFA_V7 = (
     "ZEREBRO/USDT:USDT",
@@ -613,11 +613,11 @@ EMPEROR_INHIBIDOR_OFI_TRAIL = 0.30
 
 # Parámetros Específicos Short-Pump-Sniper V7.5.0
 SHORT_SNIPER_HABILITADO = True
-SHORT_PUMP_MIN_EMA_HIGH_BETA_PCT = 1.15
-SHORT_PUMP_MIN_EMA_TIER1_PCT = 0.65
+SHORT_PUMP_MIN_EMA_HIGH_BETA_PCT = 0.84
+SHORT_PUMP_MIN_EMA_TIER1_PCT = 0.48
 SHORT_PUMP_VENTANA_VIGILANCIA_SEG = 120.0
-SHORT_TRIGGER_LYAPUNOV_MAX = -0.1200
-SHORT_TRIGGER_OFI_MAX = -0.35
+SHORT_TRIGGER_LYAPUNOV_MAX = -0.0650
+SHORT_TRIGGER_OFI_MAX = -0.28
 SHORT_KELLY_FRACTION = 0.48
 SHORT_HJB_INITIAL_TARGET_PCT = 0.0042
 SHORT_HJB_SHIELD_FLOOR_PCT = 0.0022
@@ -627,10 +627,18 @@ SHORT_SL_BYBIT_PCT = 0.0120
 # ==============================================================================
 # ARQUITECTURA TRI-CORTEX ENSEMBLE V7.5.1 (GROQ LPU + GEMINI 2.5 + NVIDIA NIM)
 # ==============================================================================
-VERSION_SISTEMA = "7.6.0"
+VERSION_SISTEMA = "7.7.0"
 TRI_CORTEX_HABILITADO = True
 GEMINI_MODEL_PRIMARY = "gemini-3.5-flash-lite"
 GEMINI_MODEL_FALLBACK = "gemma-4-31b-it"
 NVIDIA_NIM_ENDPOINT = "https://integrate.api.nvidia.com/v1/chat/completions"
 NVIDIA_MODEL_FORENSE = "deepseek-ai/deepseek-v4.1-flash"
 NVIDIA_MODEL_FALLBACK = "nvidia/llama-3.1-nemotron-ultra-253b-v1"
+
+# ==============================================================================
+# PARÁMETROS CUÁNTICOS V7.7.0 (HURST ROUGHNESS + ML-OFI L2 + QUEUE-JUMP)
+# ==============================================================================
+HURST_MAX_PERSISTENCE = 0.53
+HURST_SUPER_ELASTIC = 0.44
+ML_OFI_DECAY_ETA = 0.45
+SPREAD_MAX_GODSPEED_PCT = 0.185

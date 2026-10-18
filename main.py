@@ -252,7 +252,7 @@ async def main():
     adquirir_bloqueo_instancia_unica()
     loop_name = type(asyncio.get_running_loop()).__name__
     print("==================================================================")
-    print("INICIANDO CEREBRO CENTRAL SPLITBRAIN-OMEGA (V7.6.0 - EMPEROR TIME - GODSPEED)")
+    print("INICIANDO CEREBRO CENTRAL SPLITBRAIN-OMEGA (V7.7.0 - EMPEROR TIME - GODSPEED QUANTUM)")
     print("==================================================================")
     print(f"[MAIN] Bloqueo de instancia física adquirido exitosamente (PID {os.getpid()} | Loop: {loop_name}).")
     print(f"[MAIN] Telemetría local con sellado de tiempo activa en: {LOG_FILE.name}")
@@ -312,7 +312,7 @@ async def main():
         print(
             f"[MAIN] Modo Paper: {cfg.MODO_PAPER} | Motor Salida: {cfg.MOTOR_SALIDA}+MAKER_PFQI | "
             f"OFI Min: {cfg.UMBRAL_OFI_TOXICO:+.2f} | Hold Máx: {cfg.TIEMPO_MAX_HOLD_SEG}s "
-            f"(Emperor Time v7.6.0 GODSPEED: 100% Win-to-Win | Piso +0.22% | Spread 0.18% | Tri-Cortex | 6.6Hz) | Hawkes 0.55s | HJB +0.22%..+0.72% | Kelly 45%-65%) | Dual-LPU | Piso Maker +0.22%) | "
+            f"(Emperor Time v7.7.0 GODSPEED QUANTUM: Hurst + ML-OFI L2 | Spread 0.185% | Piso +0.22% | Short +0.84%) | Hawkes 0.55s | HJB +0.22%..+0.72% | Kelly 45%-65%) | Dual-LPU | Piso Maker +0.22%) | "
             f"BE: +{cfg.BE_ACTIVACION_PCT:.2%} | Trail: +{cfg.TRAIL_ACTIVACION_PCT:.2%}"
         )
         print(f"[MAIN] Radar fijado en {len(presas)} pares cripto-nativos Tier-1 viables.")
