@@ -530,7 +530,7 @@ SL_GRACIA_MECHAZO_SEG = 6.0
 # ==============================================================================
 # DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.5.0 (EMPEROR TIME - BIDIRECTIONAL PREDATOR)
 # ==============================================================================
-VERSION_SISTEMA = "7.7.2"
+VERSION_SISTEMA = "7.8.0"
 NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_7_0_GODSPEED_QUANTUM"
 
 NUCLEO_ALFA_V7 = (
@@ -627,7 +627,7 @@ SHORT_SL_BYBIT_PCT = 0.0120
 # ==============================================================================
 # ARQUITECTURA TRI-CORTEX ENSEMBLE V7.5.1 (GROQ LPU + GEMINI 2.5 + NVIDIA NIM)
 # ==============================================================================
-VERSION_SISTEMA = "7.7.2"
+VERSION_SISTEMA = "7.8.0"
 TRI_CORTEX_HABILITADO = True
 GEMINI_MODEL_PRIMARY = "gemini-3.5-flash-lite"
 GEMINI_MODEL_FALLBACK = "gemma-4-31b-it"
@@ -642,3 +642,38 @@ HURST_MAX_PERSISTENCE = 0.53
 HURST_SUPER_ELASTIC = 0.44
 ML_OFI_DECAY_ETA = 0.45
 SPREAD_MAX_GODSPEED_PCT = 0.185
+
+# ==============================================================================
+# CONECTOR_CALIBRACION_DIARIA_OOS_V780: LECTURA SEGURA DE calibracion_diaria_oos.json
+# ==============================================================================
+import json as _json_oos_v780
+import os as _os_oos_v780
+import pathlib as _pathlib_oos_v780
+
+RUTA_CALIBRACION_OOS_JSON = _pathlib_oos_v780.Path(__file__).resolve().parent / 'calibracion_diaria_oos.json'
+_ULTIMO_MTIME_OOS_V780 = 0.0
+
+def recargar_calibracion_oos_si_cambio() -> bool:
+    global _ULTIMO_MTIME_OOS_V780
+    if _os_oos_v780.environ.get('SPLITBRAIN_TEST_MODE') == '1':
+        return False
+    try:
+        if not RUTA_CALIBRACION_OOS_JSON.exists():
+            return False
+        mtime = RUTA_CALIBRACION_OOS_JSON.stat().st_mtime
+        if mtime <= _ULTIMO_MTIME_OOS_V780:
+            return False
+        data = _json_oos_v780.loads(RUTA_CALIBRACION_OOS_JSON.read_text(encoding='utf-8'))
+        params = data.get('parametros_calibrados', data)
+        if isinstance(params, dict):
+            g = globals()
+            claves = ('Z_SCORE_NUCLEO_ALFA', 'OFI_UMBRAL_MINIMO', 'SL_INICIAL_PCT', 'SL_BYBIT_PCT', 'MAKER_UNWIND_TARGET_PCT')
+            for k in claves:
+                if k in params and isinstance(params[k], (int, float)):
+                    g[k] = float(params[k])
+        _ULTIMO_MTIME_OOS_V780 = mtime
+        return True
+    except Exception:
+        return False
+
+recargar_calibracion_oos_si_cambio()

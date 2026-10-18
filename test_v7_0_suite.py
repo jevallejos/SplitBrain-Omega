@@ -173,7 +173,7 @@ class _MockExchangeZeroRest:
 
 async def ejecutar_auditoria_v6_4_0() -> None:
     print("==================================================================")
-    print("🧪 INICIANDO SUITE DE PRUEBAS INTEGRADA: SPLITBRAIN-OMEGA V7.7.2 (EMPEROR TIME - GODSPEED QUANTUM TRI-CORTEX)")
+    print("🧪 INICIANDO SUITE DE PRUEBAS INTEGRADA: SPLITBRAIN-OMEGA V7.8.0 (EMPEROR TIME - GODSPEED QUANTUM TRI-CORTEX)")
     print("==================================================================")
 
     # 1. Verificación de compilación sintáctica de todos los módulos
@@ -523,7 +523,7 @@ async def ejecutar_auditoria_v6_4_0() -> None:
             ruta_temp.unlink()
 
     print("==================================================================")
-    print("🏆 TODAS LAS PRUEBAS DE INTEGRIDAD V7.7.2 EMPEROR TIME GODSPEED QUANTUM TRI-CORTEX (15/15) SUPERADAS")
+    print("🏆 TODAS LAS PRUEBAS DE INTEGRIDAD V7.8.0 EMPEROR TIME GODSPEED QUANTUM TRI-CORTEX (15/15) SUPERADAS")
     print("==================================================================")
 
 

@@ -389,12 +389,12 @@ class PositionManager:
                 return False
             q_fmt = exchange.amount_to_precision(pos.symbol, pos.cantidad)
             # PISO_MAKER_V7_1: Garantiza salida Maker >= entry_price * 1.0022 (+0.18% neto WIN)
-            _entry_ref = float(getattr(pos, 'entrada', getattr(pos, 'entry_price', getattr(pos, 'precio_entrada', 0.0))) or 0.0)
+            _entry_ref = float(getattr(pos, 'entrada', getattr(pos, 'entrada', getattr(pos, 'entry_price', getattr(pos, 'precio_entrada', 0.0)))) or 0.0)
             if _entry_ref > 0 and float(p_fmt) < _entry_ref * 1.0022:
                 p_fmt = float(self.exchange.price_to_precision(symbol, _entry_ref * 1.0022)) if hasattr(self, 'exchange') and hasattr(self.exchange, 'price_to_precision') else round(_entry_ref * 1.0022, 6)
             # BARRERA_HJB_V74_ACTIVA: Superficie continua HJB (>= +0.22% bruto / +0.18% neto WIN)
             if __import__('os').environ.get('SPLITBRAIN_TEST_MODE') != '1':
-                _ent_v74 = float(getattr(pos, 'entrada', getattr(pos, 'entry_price', getattr(pos, 'precio_entrada', 0.0))) or 0.0)
+                _ent_v74 = float(getattr(pos, 'entrada', getattr(pos, 'entrada', getattr(pos, 'entry_price', getattr(pos, 'precio_entrada', 0.0)))) or 0.0)
                 _edad_v74 = float(locals().get('tiempo_hold', locals().get('edad', locals().get('edad_seg', 35.0))) or 35.0)
                 _ofi_v74 = float(locals().get('ofi_10s', locals().get('ofi_actual', 0.0)) or 0.0)
                 _tau_v74 = _calcular_barrera_hjb_v74(pos, _edad_v74, _ofi_v74)
@@ -833,9 +833,9 @@ def _instalar_compuerta_exchange_v772(ex) -> None:
         ):
             pos_obj = _ULTIMAS_POS_V772.get(symbol)
             if pos_obj is not None:
-                ent_p = float(getattr(pos_obj, "entrada", getattr(pos_obj, "entry_price", getattr(pos_obj, "precio_entrada", 0.0))) or 0.0)
+                ent_p = float(getattr(pos_obj, "entrada", getattr(pos_obj, "entrada", getattr(pos_obj, "entry_price", getattr(pos_obj, "precio_entrada", 0.0)))) or 0.0)
                 ahora = _time_ge_v772.time()
-                ts_ap = float(getattr(pos_obj, "t_apertura", getattr(pos_obj, "timestamp_apertura", getattr(pos_obj, "start_time", ahora))) or ahora)
+                ts_ap = float(getattr(pos_obj, "t_apertura", getattr(pos_obj, "t_apertura", getattr(pos_obj, "timestamp_apertura", getattr(pos_obj, "start_time", ahora)))) or ahora)
                 edad_s = max(0.0, ahora - ts_ap)
                 if ent_p > 0.0:
                     # Fase 1 (< 28s): +0.20% bruto | Fase 2 (>= 28s Escudo): +0.075% bruto (+2 ticks = WIN neto garantizado)
