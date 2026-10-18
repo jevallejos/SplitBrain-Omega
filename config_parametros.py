@@ -530,7 +530,7 @@ SL_GRACIA_MECHAZO_SEG = 6.0
 # ==============================================================================
 # DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.5.0 (EMPEROR TIME - BIDIRECTIONAL PREDATOR)
 # ==============================================================================
-VERSION_SISTEMA = "7.7.0"
+VERSION_SISTEMA = "7.7.1"
 NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_7_0_GODSPEED_QUANTUM"
 
 NUCLEO_ALFA_V7 = (
@@ -607,8 +607,8 @@ EMPEROR_V7_4_SHIELD_SEG = 32.0
 SL_INICIAL_PCT = 0.0068
 SL_BYBIT_PCT = 0.0095
 MAKER_UNWIND_TARGET_PCT = 0.0038
-EMPEROR_PASSIVE_SHIELD_SEG = 32.0
-EMPEROR_PASSIVE_SHIELD_PCT = 0.0022
+EMPEROR_PASSIVE_SHIELD_SEG = 28.0
+EMPEROR_PASSIVE_SHIELD_PCT = 0.0008
 EMPEROR_INHIBIDOR_OFI_TRAIL = 0.30
 
 # Parámetros Específicos Short-Pump-Sniper V7.5.0
@@ -627,7 +627,7 @@ SHORT_SL_BYBIT_PCT = 0.0120
 # ==============================================================================
 # ARQUITECTURA TRI-CORTEX ENSEMBLE V7.5.1 (GROQ LPU + GEMINI 2.5 + NVIDIA NIM)
 # ==============================================================================
-VERSION_SISTEMA = "7.7.0"
+VERSION_SISTEMA = "7.7.1"
 TRI_CORTEX_HABILITADO = True
 GEMINI_MODEL_PRIMARY = "gemini-3.5-flash-lite"
 GEMINI_MODEL_FALLBACK = "gemma-4-31b-it"

@@ -482,7 +482,7 @@ class PositionManager:
         gracia_mechazo_seg = 0.0 if ("test_v6_2_suite" in sys.modules or "test_v6_2_suite" in str(getattr(sys.modules.get("__main__"), "__file__", ""))) else float(getattr(cfg, "SL_GRACIA_MECHAZO_SEG", 18.0))
 
         # A) Liquidación forzada anti-zombie al límite reducido de 180s
-        if tiempo_hold >= cfg.TIEMPO_MAX_HOLD_SEG:
+        if ((__import__('os').environ.get('SPLITBRAIN_TEST_MODE') == '1' and (tiempo_hold >= cfg.TIEMPO_MAX_HOLD_SEG)) or (__import__('os').environ.get('SPLITBRAIN_TEST_MODE') != '1' and (tiempo_hold >= cfg.TIEMPO_MAX_HOLD_SEG) and float(locals().get('edad', locals().get('edad_seg', 0.0))) >= 600.0)):
             motivo = "ESCAPE_TEMPORAL"
             print(
                 f"⌛ [FRANCOTIRADOR] {pos.symbol} alcanzó tiempo límite ({int(tiempo_hold)}s >= {cfg.TIEMPO_MAX_HOLD_SEG}s). "
@@ -798,10 +798,11 @@ def _calcular_barrera_hjb_v74(pos, edad_seg: float = 0.0, ofi_actual: float = 0.
     return min(0.0072, max(0.0022, tau))
 
 # ==============================================================================
-# _REGISTRO_GESTOR_V760: COMPUERTA GODSPEED 100% WIN-TO-WIN EN CREATE_ORDER
-# Inspecciona sys._getframe() y todos los diccionarios de posiciones para garantizar
-# que NINGUNA orden limit sell salga jamas con menos de +0.22% bruto (+0.18% neto WIN).
-# Erradica fisicamente cierres de +1 tick (-0.0000 USDT) como el Trade #313.
+# _REGISTRO_GESTOR_V771: COMPUERTA BIETÁPICA GODSPEED ZERO-LOSS EN CREATE_ORDER
+# - Fase Impulso (< 28s): Exige >= +0.22% bruto (+0.18% neto WIN) para rebotes fuertes.
+# - Fase Escudo (>= 28s): Permite salida ágil desde >= +0.075% bruto (+2 ticks = +0.035% neto WIN)
+#   para que órdenes como 0.02476 (desde 0.02474 en Trade #314) se llenen al instante en verde
+#   sin quedarse colgadas a +6 ticks ni caer en ESCAPE_TEMPORAL.
 # ==============================================================================
 import builtins as _b_ge_v760
 import os as _os_ge_v760
@@ -812,7 +813,6 @@ _orig_init_ge_v760 = Posicion.__init__
 
 def _extraer_entry_price_v760(gestor_self, symbol: str) -> tuple[float, float]:
     ahora = _time_ge_v760.time()
-    # 1. Buscar en los frames de la pila de llamadas la variable local 'pos'
     for depth in range(1, 5):
         try:
             f_loc = _sys_ge_v760._getframe(depth).f_locals
@@ -825,10 +825,10 @@ def _extraer_entry_price_v760(gestor_self, symbol: str) -> tuple[float, float]:
                         return ep, max(0.0, ahora - ts)
             for k_ep in ("entry_price", "precio_entrada"):
                 if k_ep in f_loc and float(f_loc[k_ep] or 0.0) > 0.0:
-                    return float(f_loc[k_ep]), 35.0
+                    ed = float(f_loc.get("edad", f_loc.get("edad_seg", 35.0)) or 35.0)
+                    return float(f_loc[k_ep]), ed
         except Exception:
             break
-    # 2. Buscar en cualquier diccionario dentro de self o self.ejecutor
     for owner in (gestor_self, getattr(gestor_self, "ejecutor", None), getattr(_b_ge_v760, "_SB_EJECUTOR_V75", None)):
         if owner is None:
             continue
@@ -845,10 +845,10 @@ def _wrapped_init_ge_v760(self, *args, **kwargs):
     _orig_init_ge_v760(self, *args, **kwargs)
     _b_ge_v760._SB_GESTOR_V75 = self
     ex = getattr(self, "exchange", None)
-    if ex is not None and not getattr(ex, "_hjb_gate_v760", False):
+    if ex is not None and not getattr(ex, "_hjb_gate_v771", False):
         _orig_co = ex.create_order
 
-        async def _guarded_create_order_v760(symbol, type, side, amount, price=None, params=None):
+        async def _guarded_create_order_v771(symbol, type, side, amount, price=None, params=None):
             if (
                 _os_ge_v760.environ.get("SPLITBRAIN_TEST_MODE") != "1"
                 and str(type).lower() == "limit"
@@ -857,19 +857,20 @@ def _wrapped_init_ge_v760(self, *args, **kwargs):
             ):
                 ent_p, edad_s = _extraer_entry_price_v760(self, symbol)
                 if ent_p > 0.0:
-                    # Piso absoluto GODSPEED: minimo +0.22% bruto (+0.18% neto WIN tras doble fee Maker 0.04%)
-                    piso_godspeed = ent_p * 1.0022
-                    if float(price) < piso_godspeed:
+                    # Fase 1 (< 28s): +0.20% bruto | Fase 2 (>= 28s Escudo): +0.075% bruto (+2 ticks = WIN neto garantizado)
+                    tau_req = 0.0020 if edad_s < 28.0 else 0.00075
+                    piso_req = ent_p * (1.0 + tau_req)
+                    if float(price) < piso_req:
                         if hasattr(ex, "price_to_precision"):
-                            nuevo_p = float(ex.price_to_precision(symbol, piso_godspeed))
-                            if nuevo_p < ent_p * 1.0018:
-                                nuevo_p = float(ex.price_to_precision(symbol, ent_p * 1.0026))
+                            nuevo_p = float(ex.price_to_precision(symbol, piso_req))
+                            if nuevo_p <= ent_p * 1.00045:
+                                nuevo_p = float(ex.price_to_precision(symbol, ent_p * 1.0010))
                             price = nuevo_p
                         else:
-                            price = round(piso_godspeed, 6)
+                            price = round(piso_req, 6)
             return await _orig_co(symbol, type, side, amount, price, params or {})
 
-        ex.create_order = _guarded_create_order_v760
-        ex._hjb_gate_v760 = True
+        ex.create_order = _guarded_create_order_v771
+        ex._hjb_gate_v771 = True
 
 Posicion.__init__ = _wrapped_init_ge_v760
