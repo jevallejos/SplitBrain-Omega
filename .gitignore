@@ -9,3 +9,8 @@ __pycache__/
 *.jsonl
 .test_*
 .vscode/
+calibracion_diaria_oos.json
+.calibracion_diaria_oos.json.tmp
+reporte_cuantico_24h.md
+evaluador_24h.log
+bot_hft_h.log

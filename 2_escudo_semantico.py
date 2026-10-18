@@ -490,3 +490,16 @@ def _hook_print_tricortex_v753(*args, **kwargs):
     return res
 
 _builtins_tc.print = _hook_print_tricortex_v753
+
+# Hot-Reload periódico de calibracion_diaria_oos.json en cada ciclo del Tri-Cortex
+import config_parametros as _cfg_hr_v781
+_orig_ejecutar_tricortex_v781 = getattr(sys.modules[__name__], '_ejecutar_tricortex_ensemble', None)
+if _orig_ejecutar_tricortex_v781 is not None:
+    async def _wrapped_tricortex_hr_v781(*args, **kwargs):
+        try:
+            if hasattr(_cfg_hr_v781, 'recargar_calibracion_oos_si_cambio'):
+                _cfg_hr_v781.recargar_calibracion_oos_si_cambio()
+        except Exception:
+            pass
+        return await _orig_ejecutar_tricortex_v781(*args, **kwargs)
+    _ejecutar_tricortex_ensemble = _wrapped_tricortex_hr_v781
