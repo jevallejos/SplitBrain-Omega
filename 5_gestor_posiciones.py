@@ -798,64 +798,45 @@ def _calcular_barrera_hjb_v74(pos, edad_seg: float = 0.0, ofi_actual: float = 0.
     return min(0.0072, max(0.0022, tau))
 
 # ==============================================================================
-# _REGISTRO_GESTOR_V771: COMPUERTA BIETÁPICA GODSPEED ZERO-LOSS EN CREATE_ORDER
-# - Fase Impulso (< 28s): Exige >= +0.22% bruto (+0.18% neto WIN) para rebotes fuertes.
-# - Fase Escudo (>= 28s): Permite salida ágil desde >= +0.075% bruto (+2 ticks = +0.035% neto WIN)
-#   para que órdenes como 0.02476 (desde 0.02474 en Trade #314) se llenen al instante en verde
-#   sin quedarse colgadas a +6 ticks ni caer en ESCAPE_TEMPORAL.
+# _REGISTRO_GESTOR_V772: INMUNE A RECURSIÓN + COMPUERTA BIETÁPICA ZERO-LOSS
 # ==============================================================================
-import builtins as _b_ge_v760
-import os as _os_ge_v760
-import sys as _sys_ge_v760
-import time as _time_ge_v760
+import builtins as _b_ge_v772
+import os as _os_ge_v772
+import time as _time_ge_v772
 
-_orig_init_ge_v760 = Posicion.__init__
+_ULTIMAS_POS_V772 = {}
 
-def _extraer_entry_price_v760(gestor_self, symbol: str) -> tuple[float, float]:
-    ahora = _time_ge_v760.time()
-    for depth in range(1, 5):
-        try:
-            f_loc = _sys_ge_v760._getframe(depth).f_locals
-            for k_var in ("pos", "posicion", "p"):
-                obj = f_loc.get(k_var)
-                if obj is not None and getattr(obj, "symbol", None) == symbol:
-                    ep = float(getattr(obj, "entry_price", getattr(obj, "precio_entrada", 0.0)) or 0.0)
-                    ts = float(getattr(obj, "timestamp_apertura", getattr(obj, "start_time", ahora)) or ahora)
-                    if ep > 0.0:
-                        return ep, max(0.0, ahora - ts)
-            for k_ep in ("entry_price", "precio_entrada"):
-                if k_ep in f_loc and float(f_loc[k_ep] or 0.0) > 0.0:
-                    ed = float(f_loc.get("edad", f_loc.get("edad_seg", 35.0)) or 35.0)
-                    return float(f_loc[k_ep]), ed
-        except Exception:
-            break
-    for owner in (gestor_self, getattr(gestor_self, "ejecutor", None), getattr(_b_ge_v760, "_SB_EJECUTOR_V75", None)):
-        if owner is None:
-            continue
-        for val_attr in getattr(owner, "__dict__", {}).values():
-            if isinstance(val_attr, dict) and symbol in val_attr:
-                obj = val_attr[symbol]
-                ep = float(getattr(obj, "entry_price", getattr(obj, "precio_entrada", 0.0)) or 0.0)
-                ts = float(getattr(obj, "timestamp_apertura", getattr(obj, "start_time", ahora)) or ahora)
-                if ep > 0.0:
-                    return ep, max(0.0, ahora - ts)
-    return 0.0, 35.0
+# 1. Registrar cada Posicion abierta en _ULTIMAS_POS_V772[symbol] sin recursion
+if not hasattr(Posicion, "_orig_init_base_v772"):
+    Posicion._orig_init_base_v772 = Posicion.__init__
 
-def _wrapped_init_ge_v760(self, *args, **kwargs):
-    _orig_init_ge_v760(self, *args, **kwargs)
-    _b_ge_v760._SB_GESTOR_V75 = self
-    ex = getattr(self, "exchange", None)
-    if ex is not None and not getattr(ex, "_hjb_gate_v771", False):
-        _orig_co = ex.create_order
+def _pos_init_v772(self, *args, **kwargs):
+    Posicion._orig_init_base_v772(self, *args, **kwargs)
+    sym_p = getattr(self, "symbol", None)
+    if sym_p:
+        _ULTIMAS_POS_V772[sym_p] = self
 
-        async def _guarded_create_order_v771(symbol, type, side, amount, price=None, params=None):
-            if (
-                _os_ge_v760.environ.get("SPLITBRAIN_TEST_MODE") != "1"
-                and str(type).lower() == "limit"
-                and str(side).lower() == "sell"
-                and price is not None
-            ):
-                ent_p, edad_s = _extraer_entry_price_v760(self, symbol)
+Posicion.__init__ = _pos_init_v772
+
+
+def _instalar_compuerta_exchange_v772(ex) -> None:
+    if ex is None or getattr(ex, "_hjb_gate_v772", False):
+        return
+    _orig_co = ex.create_order
+
+    async def _guarded_create_order_v772(symbol, type, side, amount, price=None, params=None):
+        if (
+            _os_ge_v772.environ.get("SPLITBRAIN_TEST_MODE") != "1"
+            and str(type).lower() == "limit"
+            and str(side).lower() == "sell"
+            and price is not None
+        ):
+            pos_obj = _ULTIMAS_POS_V772.get(symbol)
+            if pos_obj is not None:
+                ent_p = float(getattr(pos_obj, "entry_price", getattr(pos_obj, "precio_entrada", 0.0)) or 0.0)
+                ahora = _time_ge_v772.time()
+                ts_ap = float(getattr(pos_obj, "timestamp_apertura", getattr(pos_obj, "start_time", ahora)) or ahora)
+                edad_s = max(0.0, ahora - ts_ap)
                 if ent_p > 0.0:
                     # Fase 1 (< 28s): +0.20% bruto | Fase 2 (>= 28s Escudo): +0.075% bruto (+2 ticks = WIN neto garantizado)
                     tau_req = 0.0020 if edad_s < 28.0 else 0.00075
@@ -868,87 +849,19 @@ def _wrapped_init_ge_v760(self, *args, **kwargs):
                             price = nuevo_p
                         else:
                             price = round(piso_req, 6)
-            return await _orig_co(symbol, type, side, amount, price, params or {})
+        return await _orig_co(symbol, type, side, amount, price, params or {})
 
-        ex.create_order = _guarded_create_order_v771
-        ex._hjb_gate_v771 = True
+    ex.create_order = _guarded_create_order_v772
+    ex._hjb_gate_v772 = True
 
-Posicion.__init__ = _wrapped_init_ge_v760
 
-# ==============================================================================
-# _REGISTRO_GESTOR_V771: COMPUERTA BIETÁPICA GODSPEED ZERO-LOSS EN CREATE_ORDER
-# - Fase Impulso (< 28s): Exige >= +0.22% bruto (+0.18% neto WIN) para rebotes fuertes.
-# - Fase Escudo (>= 28s): Permite salida ágil desde >= +0.075% bruto (+2 ticks = +0.035% neto WIN)
-#   para que órdenes como 0.02476 (desde 0.02474 en Trade #314) se llenen al instante en verde
-#   sin quedarse colgadas a +6 ticks ni caer en ESCAPE_TEMPORAL.
-# ==============================================================================
-import builtins as _b_ge_v760
-import os as _os_ge_v760
-import sys as _sys_ge_v760
-import time as _time_ge_v760
+# 2. Envolver PositionManager.__init__ sin recursion
+if not hasattr(PositionManager, "_orig_init_base_v772"):
+    PositionManager._orig_init_base_v772 = PositionManager.__init__
 
-_orig_init_ge_v760 = Posicion.__init__
+def _gestor_init_v772(self, *args, **kwargs):
+    PositionManager._orig_init_base_v772(self, *args, **kwargs)
+    _b_ge_v772._SB_GESTOR_V75 = self
+    _instalar_compuerta_exchange_v772(getattr(self, "exchange", None))
 
-def _extraer_entry_price_v760(gestor_self, symbol: str) -> tuple[float, float]:
-    ahora = _time_ge_v760.time()
-    for depth in range(1, 5):
-        try:
-            f_loc = _sys_ge_v760._getframe(depth).f_locals
-            for k_var in ("pos", "posicion", "p"):
-                obj = f_loc.get(k_var)
-                if obj is not None and getattr(obj, "symbol", None) == symbol:
-                    ep = float(getattr(obj, "entry_price", getattr(obj, "precio_entrada", 0.0)) or 0.0)
-                    ts = float(getattr(obj, "timestamp_apertura", getattr(obj, "start_time", ahora)) or ahora)
-                    if ep > 0.0:
-                        return ep, max(0.0, ahora - ts)
-            for k_ep in ("entry_price", "precio_entrada"):
-                if k_ep in f_loc and float(f_loc[k_ep] or 0.0) > 0.0:
-                    ed = float(f_loc.get("edad", f_loc.get("edad_seg", 35.0)) or 35.0)
-                    return float(f_loc[k_ep]), ed
-        except Exception:
-            break
-    for owner in (gestor_self, getattr(gestor_self, "ejecutor", None), getattr(_b_ge_v760, "_SB_EJECUTOR_V75", None)):
-        if owner is None:
-            continue
-        for val_attr in getattr(owner, "__dict__", {}).values():
-            if isinstance(val_attr, dict) and symbol in val_attr:
-                obj = val_attr[symbol]
-                ep = float(getattr(obj, "entry_price", getattr(obj, "precio_entrada", 0.0)) or 0.0)
-                ts = float(getattr(obj, "timestamp_apertura", getattr(obj, "start_time", ahora)) or ahora)
-                if ep > 0.0:
-                    return ep, max(0.0, ahora - ts)
-    return 0.0, 35.0
-
-def _wrapped_init_ge_v760(self, *args, **kwargs):
-    _orig_init_ge_v760(self, *args, **kwargs)
-    _b_ge_v760._SB_GESTOR_V75 = self
-    ex = getattr(self, "exchange", None)
-    if ex is not None and not getattr(ex, "_hjb_gate_v771", False):
-        _orig_co = ex.create_order
-
-        async def _guarded_create_order_v771(symbol, type, side, amount, price=None, params=None):
-            if (
-                _os_ge_v760.environ.get("SPLITBRAIN_TEST_MODE") != "1"
-                and str(type).lower() == "limit"
-                and str(side).lower() == "sell"
-                and price is not None
-            ):
-                ent_p, edad_s = _extraer_entry_price_v760(self, symbol)
-                if ent_p > 0.0:
-                    # Fase 1 (< 28s): +0.20% bruto | Fase 2 (>= 28s Escudo): +0.075% bruto (+2 ticks = WIN neto garantizado)
-                    tau_req = 0.0020 if edad_s < 28.0 else 0.00075
-                    piso_req = ent_p * (1.0 + tau_req)
-                    if float(price) < piso_req:
-                        if hasattr(ex, "price_to_precision"):
-                            nuevo_p = float(ex.price_to_precision(symbol, piso_req))
-                            if nuevo_p <= ent_p * 1.00045:
-                                nuevo_p = float(ex.price_to_precision(symbol, ent_p * 1.0010))
-                            price = nuevo_p
-                        else:
-                            price = round(piso_req, 6)
-            return await _orig_co(symbol, type, side, amount, price, params or {})
-
-        ex.create_order = _guarded_create_order_v771
-        ex._hjb_gate_v771 = True
-
-Posicion.__init__ = _wrapped_init_ge_v760
+PositionManager.__init__ = _gestor_init_v772
