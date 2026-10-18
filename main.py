@@ -421,3 +421,65 @@ def _print_con_historial_v755(*args, **kwargs):
     return res
 
 _b_hist_v755.print = _print_con_historial_v755
+
+# ==============================================================================
+# PUENTE_TELEGRAM_CIERRE_ROJO_V773: ENVÍA 🔴 [CIERRE <MOTIVO>] EN PÉRDIDAS REALES
+# Formato idéntico al de ganancias:
+# 🔴 [CIERRE SL] ZEREBRO/USDT:USDT
+# -1.40 % (-0.2551 USDT) en 83s
+# ==============================================================================
+import asyncio as _asyncio_tg_v773
+import aiohttp as _aiohttp_tg_v773
+
+_REGEX_CIERRE_LOG_V773 = _re_hist_v755.compile(
+    r"\[(?:FRANCOTIRADOR|SHORT-SNIPER)\]\s*(🟩|🔴)\s*CIERRE(?:\s+SHORT)?\s+([A-Z0-9]+/USDT:USDT)\s+\[([^\]]+)\]\s+[^|]+\|\s*([-+0-9.]+\s*%\s*\([-+0-9.]+\s*USDT\)\s*en\s*[0-9.]+s)"
+)
+
+
+async def _despachar_cierre_telegram_v773(icono: str, symbol: str, motivo: str, detalle_pnl: str) -> None:
+    if _os_hist_v755.environ.get("SPLITBRAIN_TEST_MODE") == "1":
+        return
+    if motivo == "ESCAPE_HUERFANA_BOOT" or "14400s" in detalle_pnl:
+        return
+    # Esperar 0.35s por si 5_gestor_posiciones.py ya lo envio por su cuenta (como hace con los verdes)
+    await _asyncio_tg_v773.sleep(0.35)
+    texto_tg = f"{icono} [CIERRE {motivo}] {symbol}\n{detalle_pnl.strip()}"
+    cache = getattr(_b_hist_v755, "_TG_SENT_CACHE_V773", {})
+    ahora = __import__("time").time()
+    if ahora - cache.get(texto_tg, 0.0) < 12.0:
+        return
+    cache[texto_tg] = ahora
+    _b_hist_v755._TG_SENT_CACHE_V773 = cache
+
+    token = _os_hist_v755.environ.get("TELEGRAM_BOT_TOKEN", _os_hist_v755.environ.get("TELEGRAM_TOKEN", "")).strip()
+    chat_id = _os_hist_v755.environ.get("TELEGRAM_CHAT_ID", "").strip()
+    if not token or not chat_id:
+        return
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {"chat_id": chat_id, "text": texto_tg}
+    try:
+        timeout = _aiohttp_tg_v773.ClientTimeout(total=5.0)
+        async with _aiohttp_tg_v773.ClientSession(timeout=timeout) as session:
+            async with session.post(url, json=payload) as _:
+                pass
+    except Exception:
+        pass
+
+
+_prev_print_v755 = _b_hist_v755.print
+
+def _print_con_historial_y_tg_v773(*args, **kwargs):
+    res = _prev_print_v755(*args, **kwargs)
+    if _os_hist_v755.environ.get("SPLITBRAIN_TEST_MODE") != "1" and args:
+        try:
+            texto = " ".join(str(a) for a in args)
+            m_c = _REGEX_CIERRE_LOG_V773.search(texto)
+            if m_c and m_c.group(1) == "🔴":
+                icono, sym, mot, det = m_c.group(1), m_c.group(2), m_c.group(3), m_c.group(4)
+                loop = _asyncio_tg_v773.get_running_loop()
+                loop.create_task(_despachar_cierre_telegram_v773(icono, sym, mot, det))
+        except Exception:
+            pass
+    return res
+
+_b_hist_v755.print = _print_con_historial_y_tg_v773
