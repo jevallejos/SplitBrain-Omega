@@ -389,13 +389,13 @@ class PositionManager:
                 return False
             q_fmt = exchange.amount_to_precision(pos.symbol, pos.cantidad)
             # PISO_MAKER_V7_1: Garantiza salida Maker >= entry_price * 1.0022 (+0.18% neto WIN)
-            _entry_ref = float(getattr(pos, 'entry_price', getattr(pos, 'precio_entrada', 0.0)) or 0.0)
+            _entry_ref = float(getattr(pos, 'entrada', getattr(pos, 'entry_price', getattr(pos, 'precio_entrada', 0.0))) or 0.0)
             if _entry_ref > 0 and float(p_fmt) < _entry_ref * 1.0022:
                 p_fmt = float(self.exchange.price_to_precision(symbol, _entry_ref * 1.0022)) if hasattr(self, 'exchange') and hasattr(self.exchange, 'price_to_precision') else round(_entry_ref * 1.0022, 6)
             # BARRERA_HJB_V74_ACTIVA: Superficie continua HJB (>= +0.22% bruto / +0.18% neto WIN)
             if __import__('os').environ.get('SPLITBRAIN_TEST_MODE') != '1':
-                _ent_v74 = float(getattr(pos, 'entry_price', getattr(pos, 'precio_entrada', 0.0)) or 0.0)
-                _edad_v74 = float(locals().get('edad', locals().get('edad_seg', 35.0)) or 35.0)
+                _ent_v74 = float(getattr(pos, 'entrada', getattr(pos, 'entry_price', getattr(pos, 'precio_entrada', 0.0))) or 0.0)
+                _edad_v74 = float(locals().get('tiempo_hold', locals().get('edad', locals().get('edad_seg', 35.0))) or 35.0)
                 _ofi_v74 = float(locals().get('ofi_10s', locals().get('ofi_actual', 0.0)) or 0.0)
                 _tau_v74 = _calcular_barrera_hjb_v74(pos, _edad_v74, _ofi_v74)
                 _p_min_v74 = _ent_v74 * (1.0 + _tau_v74)
@@ -482,7 +482,7 @@ class PositionManager:
         gracia_mechazo_seg = 0.0 if ("test_v6_2_suite" in sys.modules or "test_v6_2_suite" in str(getattr(sys.modules.get("__main__"), "__file__", ""))) else float(getattr(cfg, "SL_GRACIA_MECHAZO_SEG", 18.0))
 
         # A) Liquidación forzada anti-zombie al límite reducido de 180s
-        if ((__import__('os').environ.get('SPLITBRAIN_TEST_MODE') == '1' and (tiempo_hold >= cfg.TIEMPO_MAX_HOLD_SEG)) or (__import__('os').environ.get('SPLITBRAIN_TEST_MODE') != '1' and (tiempo_hold >= cfg.TIEMPO_MAX_HOLD_SEG) and float(locals().get('edad', locals().get('edad_seg', 0.0))) >= 600.0)):
+        if ((__import__('os').environ.get('SPLITBRAIN_TEST_MODE') == '1' and (tiempo_hold >= cfg.TIEMPO_MAX_HOLD_SEG)) or (__import__('os').environ.get('SPLITBRAIN_TEST_MODE') != '1' and (tiempo_hold >= cfg.TIEMPO_MAX_HOLD_SEG) and float(locals().get('tiempo_hold', locals().get('edad', locals().get('edad_seg', 0.0)))) >= 360.0)):
             motivo = "ESCAPE_TEMPORAL"
             print(
                 f"⌛ [FRANCOTIRADOR] {pos.symbol} alcanzó tiempo límite ({int(tiempo_hold)}s >= {cfg.TIEMPO_MAX_HOLD_SEG}s). "
@@ -727,7 +727,7 @@ class PositionManager:
                 pos.entrada, float(salida), float(cantidad), cfg.FEE_MAKER, fee_salida
             )
 
-            if (__import__('os').environ.get('SPLITBRAIN_TEST_MODE') == '1' and (motivo != "ESCAPE_HUERFANA_BOOT")):
+            if True:  # [V7.8.0-FIX] Cooldown Post-Cierre y Anti-Knife 900s activos en produccion
                 # Si fue cierre por SL duro o sangrado tóxico, aplicar cuarentena extendida (480s) y avisar al radar
                 cd_base = float(getattr(cfg, "COOLDOWN_POST_CIERRE_SEG", 300))
                 if pnl_usdt < 0 and motivo in ("SL_EXCHANGE", "EARLY_TOXIC_SL", "SL", "OFI_EXIT"):
@@ -833,9 +833,9 @@ def _instalar_compuerta_exchange_v772(ex) -> None:
         ):
             pos_obj = _ULTIMAS_POS_V772.get(symbol)
             if pos_obj is not None:
-                ent_p = float(getattr(pos_obj, "entry_price", getattr(pos_obj, "precio_entrada", 0.0)) or 0.0)
+                ent_p = float(getattr(pos_obj, "entrada", getattr(pos_obj, "entry_price", getattr(pos_obj, "precio_entrada", 0.0))) or 0.0)
                 ahora = _time_ge_v772.time()
-                ts_ap = float(getattr(pos_obj, "timestamp_apertura", getattr(pos_obj, "start_time", ahora)) or ahora)
+                ts_ap = float(getattr(pos_obj, "t_apertura", getattr(pos_obj, "timestamp_apertura", getattr(pos_obj, "start_time", ahora))) or ahora)
                 edad_s = max(0.0, ahora - ts_ap)
                 if ent_p > 0.0:
                     # Fase 1 (< 28s): +0.20% bruto | Fase 2 (>= 28s Escudo): +0.075% bruto (+2 ticks = WIN neto garantizado)
@@ -865,3 +865,9 @@ def _gestor_init_v772(self, *args, **kwargs):
     _instalar_compuerta_exchange_v772(getattr(self, "exchange", None))
 
 PositionManager.__init__ = _gestor_init_v772
+
+# Alias nativos en Posicion para impedir atributos fantasma en cualquier modulo
+Posicion.entry_price = property(lambda self: getattr(self, "entrada", 0.0))
+Posicion.precio_entrada = property(lambda self: getattr(self, "entrada", 0.0))
+Posicion.timestamp_apertura = property(lambda self: getattr(self, "t_apertura", 0.0))
+Posicion.start_time = property(lambda self: getattr(self, "t_apertura", 0.0))
