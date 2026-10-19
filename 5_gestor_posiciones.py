@@ -798,76 +798,16 @@ def _calcular_barrera_hjb_v74(pos, edad_seg: float = 0.0, ofi_actual: float = 0.
     return min(0.0072, max(0.0022, tau))
 
 # ==============================================================================
-# _REGISTRO_GESTOR_V772: INMUNE A RECURSIÓN + COMPUERTA BIETÁPICA ZERO-LOSS
+# _REGISTRO_GESTOR_V782: PUENTE O(1) BLINDADO CONTRA RECURSION (SPLITBRAIN-OMEGA V7.8.2 (EMPEROR TIME - GODSPEED FINAL))
 # ==============================================================================
-import builtins as _b_ge_v772
-import os as _os_ge_v772
-import time as _time_ge_v772
+import builtins as _b_ge_v782
 
-_ULTIMAS_POS_V772 = {}
+if not hasattr(PositionManager, "_orig_init_base_v782"):
+    PositionManager._orig_init_base_v782 = PositionManager.__init__
 
-# 1. Registrar cada Posicion abierta en _ULTIMAS_POS_V772[symbol] sin recursion
-if not hasattr(Posicion, "_orig_init_base_v772"):
-    Posicion._orig_init_base_v772 = Posicion.__init__
+def _wrapped_init_ge_v782(self, *args, **kwargs):
+    PositionManager._orig_init_base_v782(self, *args, **kwargs)
+    _b_ge_v782._SB_GESTOR_V75 = self
+    _b_ge_v782._SB_GESTOR_V782 = self
 
-def _pos_init_v772(self, *args, **kwargs):
-    Posicion._orig_init_base_v772(self, *args, **kwargs)
-    sym_p = getattr(self, "symbol", None)
-    if sym_p:
-        _ULTIMAS_POS_V772[sym_p] = self
-
-Posicion.__init__ = _pos_init_v772
-
-
-def _instalar_compuerta_exchange_v772(ex) -> None:
-    if ex is None or getattr(ex, "_hjb_gate_v772", False):
-        return
-    _orig_co = ex.create_order
-
-    async def _guarded_create_order_v772(symbol, type, side, amount, price=None, params=None):
-        if (
-            _os_ge_v772.environ.get("SPLITBRAIN_TEST_MODE") != "1"
-            and str(type).lower() == "limit"
-            and str(side).lower() == "sell"
-            and price is not None
-        ):
-            pos_obj = _ULTIMAS_POS_V772.get(symbol)
-            if pos_obj is not None:
-                ent_p = float(getattr(pos_obj, "entrada", getattr(pos_obj, "entrada", getattr(pos_obj, "entry_price", getattr(pos_obj, "precio_entrada", 0.0)))) or 0.0)
-                ahora = _time_ge_v772.time()
-                ts_ap = float(getattr(pos_obj, "t_apertura", getattr(pos_obj, "t_apertura", getattr(pos_obj, "timestamp_apertura", getattr(pos_obj, "start_time", ahora)))) or ahora)
-                edad_s = max(0.0, ahora - ts_ap)
-                if ent_p > 0.0:
-                    # Fase 1 (< 28s): +0.20% bruto | Fase 2 (>= 28s Escudo): +0.075% bruto (+2 ticks = WIN neto garantizado)
-                    tau_req = 0.0020 if edad_s < 28.0 else 0.00075
-                    piso_req = ent_p * (1.0 + tau_req)
-                    if float(price) < piso_req:
-                        if hasattr(ex, "price_to_precision"):
-                            nuevo_p = float(ex.price_to_precision(symbol, piso_req))
-                            if nuevo_p <= ent_p * 1.00045:
-                                nuevo_p = float(ex.price_to_precision(symbol, ent_p * 1.0010))
-                            price = nuevo_p
-                        else:
-                            price = round(piso_req, 6)
-        return await _orig_co(symbol, type, side, amount, price, params or {})
-
-    ex.create_order = _guarded_create_order_v772
-    ex._hjb_gate_v772 = True
-
-
-# 2. Envolver PositionManager.__init__ sin recursion
-if not hasattr(PositionManager, "_orig_init_base_v772"):
-    PositionManager._orig_init_base_v772 = PositionManager.__init__
-
-def _gestor_init_v772(self, *args, **kwargs):
-    PositionManager._orig_init_base_v772(self, *args, **kwargs)
-    _b_ge_v772._SB_GESTOR_V75 = self
-    _instalar_compuerta_exchange_v772(getattr(self, "exchange", None))
-
-PositionManager.__init__ = _gestor_init_v772
-
-# Alias nativos en Posicion para impedir atributos fantasma en cualquier modulo
-Posicion.entry_price = property(lambda self: getattr(self, "entrada", 0.0))
-Posicion.precio_entrada = property(lambda self: getattr(self, "entrada", 0.0))
-Posicion.timestamp_apertura = property(lambda self: getattr(self, "t_apertura", 0.0))
-Posicion.start_time = property(lambda self: getattr(self, "t_apertura", 0.0))
+PositionManager.__init__ = _wrapped_init_ge_v782

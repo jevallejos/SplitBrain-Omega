@@ -295,7 +295,7 @@ class StatsTracker:
             f" MAP: {r['map_usdt']:.2f} USDT | PnL/MAP: {r['pnl_to_map']:+.4f} | LVR: {r['lvr_total_usdt']:.4f}",
             f" Balance: {r['balance_teorico']:.4f} USDT (base {self.capital_base:.2f})   real: {real}",
         ]
-        cab = " [CAJA NEGRA] SPLITBRAIN V7.8.0 EMPEROR TIME "
+        cab = " [CAJA NEGRA] SPLITBRAIN-OMEGA V7.8.2 (EMPEROR TIME - GODSPEED FINAL)EMPEROR TIME "
         out = ["╔" + cab.center(ancho, "═") + "╗"]
         out += ["║" + l.ljust(ancho)[:ancho] + "║" for l in lineas]
         out.append("╚" + "═" * ancho + "╝")
@@ -332,3 +332,58 @@ async def bucle_dashboard(exchange=None, intervalo: float = cfg.DASHBOARD_INTERV
             tracker.imprimir_dashboard(await leer_balance_real(exchange))
         except Exception as e:
             print(f"[CAJA NEGRA] ERROR en bucle de dashboard: {type(e).__name__}: {e}")
+
+# ==============================================================================
+# _HOOK_TELEGRAM_LOSS_GUARANTEE_V782: GARANTIA CONTABLE 1:1 DE CIERRES EN TELEGRAM
+# ==============================================================================
+import asyncio as _asyncio_st_v782
+import builtins as _builtins_st_v782
+import os as _os_st_v782
+
+
+def _disparar_respaldo_tg_desde_stats_v782(*args, **kwargs) -> None:
+    if _os_st_v782.environ.get("SPLITBRAIN_TEST_MODE") == "1":
+        return
+    try:
+        datos = {}
+        for a in args:
+            if isinstance(a, dict):
+                datos = a
+                break
+        if not datos and kwargs:
+            datos = kwargs
+        sym = str(datos.get("symbol", "") or "")
+        if not sym and len(args) >= 1 and isinstance(args[0], str) and "/USDT" in args[0]:
+            sym = args[0]
+        if not sym:
+            return
+        pnl_u = float(datos.get("pnl_usdt", datos.get("pnl_neto", 0.0)) or 0.0)
+        pnl_p = float(datos.get("pnl_percentage", datos.get("pnl_pct", 0.0)) or 0.0)
+        hold_s = float(datos.get("hold_seg", datos.get("duracion_seg", datos.get("hold_time", 0.0))) or 0.0)
+        motivo = str(datos.get("motivo", datos.get("reason", "CIERRE")) or "CIERRE")
+        ep = float(datos.get("entry_price", datos.get("entrada", 0.0)) or 0.0)
+        xp = float(datos.get("exit_price", datos.get("salida", 0.0)) or 0.0)
+        side = str(datos.get("side", "long") or "long")
+        fn_tg = getattr(_builtins_st_v782, "_despachar_cierre_garantizado_v782", None)
+        if callable(fn_tg):
+            loop = _asyncio_st_v782.get_running_loop()
+            loop.create_task(fn_tg(sym, pnl_p, pnl_u, hold_s, motivo, ep, xp, side))
+    except Exception:
+        pass
+
+
+for _cls_obj_st in list(globals().values()):
+    if isinstance(_cls_obj_st, type):
+        for _m_st in ("registrar", "registrar_operacion", "registrar_trade", "guardar_trade", "record_trade"):
+            if hasattr(_cls_obj_st, _m_st):
+                _b_attr = f"_orig_{_m_st}_base_v782"
+                if not hasattr(_cls_obj_st, _b_attr):
+                    setattr(_cls_obj_st, _b_attr, getattr(_cls_obj_st, _m_st))
+                _orig_m_st = getattr(_cls_obj_st, _b_attr)
+
+                def _wrapped_m_st_v782(self, *args, __orig=_orig_m_st, **kwargs):
+                    res = __orig(self, *args, **kwargs)
+                    _disparar_respaldo_tg_desde_stats_v782(*args, **kwargs)
+                    return res
+
+                setattr(_cls_obj_st, _m_st, _wrapped_m_st_v782)

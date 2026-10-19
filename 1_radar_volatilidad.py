@@ -731,7 +731,7 @@ import time as _time_radar_v7
 _CUARENTENA_PUMP_V731 = {}
 _CUARENTENA_VPIN_V731 = {}
 _COOLDOWN_SIMBOLO_V754 = {}
-_orig_print_radar_v7 = getattr(_builtins_radar_v7, "_orig_print_root_v7", _builtins_radar_v7.print)
+_orig_print_radar_v7 = _builtins_radar_v7.print
 _builtins_radar_v7._orig_print_root_v7 = _orig_print_radar_v7
 
 def _emperor_radar_print_v7(*args, **kwargs):

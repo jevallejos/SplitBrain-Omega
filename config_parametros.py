@@ -528,10 +528,10 @@ BYBIT_SL_PCT = 0.0122
 SL_GRACIA_MECHAZO_SEG = 6.0
 
 # ==============================================================================
-# DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.5.0 (EMPEROR TIME - BIDIRECTIONAL PREDATOR)
+# DOCTRINA CANÓNICA SPLITBRAIN-OMEGA V7.8.2 (EMPEROR TIME - GODSPEED FINAL)
 # ==============================================================================
-VERSION_SISTEMA = "7.8.0"
-NOMBRE_ESTRATEGIA = "EMPEROR_TIME_V7_7_0_GODSPEED_QUANTUM"
+VERSION_SISTEMA = "7.8.2"
+NOMBRE_ESTRATEGIA = "SPLITBRAIN-OMEGA V7.8.2 (EMPEROR TIME - GODSPEED FINAL)"
 
 NUCLEO_ALFA_V7 = (
     "ZEREBRO/USDT:USDT",
@@ -627,7 +627,7 @@ SHORT_SL_BYBIT_PCT = 0.0120
 # ==============================================================================
 # ARQUITECTURA TRI-CORTEX ENSEMBLE V7.5.1 (GROQ LPU + GEMINI 2.5 + NVIDIA NIM)
 # ==============================================================================
-VERSION_SISTEMA = "7.8.0"
+VERSION_SISTEMA = "7.8.2"
 TRI_CORTEX_HABILITADO = True
 GEMINI_MODEL_PRIMARY = "gemini-3.5-flash-lite"
 GEMINI_MODEL_FALLBACK = "gemma-4-31b-it"
@@ -677,3 +677,10 @@ def recargar_calibracion_oos_si_cambio() -> bool:
         return False
 
 recargar_calibracion_oos_si_cambio()
+
+# ==============================================================================
+# SELLO CANONICO SPLITBRAIN-OMEGA V7.8.2 (EMPEROR TIME - GODSPEED FINAL)
+# ==============================================================================
+VERSION_SISTEMA = "7.8.2"
+NOMBRE_ESTRATEGIA = "SPLITBRAIN-OMEGA V7.8.2 (EMPEROR TIME - GODSPEED FINAL)"
+TITULO_TELEGRAM_CANONICO = "Motor SPLITBRAIN-OMEGA V7.8.2 (EMPEROR TIME - GODSPEED FINAL)"
